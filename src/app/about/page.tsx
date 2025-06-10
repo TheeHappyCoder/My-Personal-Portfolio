@@ -137,7 +137,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen font-[family-name:var(--font-geist-sans)] mt-0 md:mt-50">
+    <div className="relative min-h-screen font-[family-name:var(--font-geist-sans)] mt-0 md:mt-50 mb-50">
       {/* Small screen avatar */}
       <div className="flex lg:hidden flex-col items-center pt-8 mb-8">
         <motion.div initial={{ y: -20 }} animate={{ y: 0 }} transition={{ duration: 0.8 }}>

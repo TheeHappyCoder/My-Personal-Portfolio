@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { MagicCard } from "@/components/magicui/magic-card";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -148,10 +149,7 @@ export default function ContactPage() {
           transition={{ delay: 0.4, duration: 1 }}
           className="w-full"
         >
-          <Card className="bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
-            <CardHeader>
-              <CardTitle>Send a Message</CardTitle>
-            </CardHeader>
+          <MagicCard >
             <CardContent className="p-6 flex flex-col gap-4">
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div className="flex flex-col">
@@ -301,7 +299,7 @@ export default function ContactPage() {
 </Popover>
             </div>  
             </CardContent>
-          </Card>
+          </MagicCard>
         </motion.div>
       </main>
     </div>
