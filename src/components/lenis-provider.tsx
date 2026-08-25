@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import Lenis from 'lenis';
+import { gsap, ScrollTrigger } from '@/lib/gsap';
 
 export default function LenisProvider() {
   const lenis = useRef<Lenis | null>(null);
@@ -18,17 +19,19 @@ export default function LenisProvider() {
 
     lenis.current = l;
 
-    function raf(time: number) {
-      l.raf(time);
-      requestAnimationFrame(raf);
-    }
+    // Connect Lenis scroll to GSAP ScrollTrigger
+    l.on('scroll', ScrollTrigger.update);
 
-    requestAnimationFrame(raf);
+    gsap.ticker.add((time) => {
+      l.raf(time * 1000);
+    });
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
       l.destroy();
+      gsap.ticker.remove(l.raf);
     };
   }, []);
 
-  return null; // This component doesn't render anything
+  return null;
 }

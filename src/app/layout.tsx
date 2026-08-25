@@ -1,18 +1,34 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { ThemeProvider } from "next-themes";
-import { Header } from "@/components/Header";
-import { ProgressBar } from "@/components/loading-bar";
-import { BodyWrapper } from "@/components/body-wrapper";
-import { Toaster } from 'sonner';
-import BackToTopButton from "@/components/scroll-top";
-import MobileSpacer from "@/components/mobile-spacer";
-import { Analytics } from '@vercel/analytics/react'; 
-import LenisProvider from "@/components/lenis-provider";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
-  title: "Mark Steyn's Portfolio",
-  description: "Created by Mark Steyn",
+  title: "MarkOS | Mark Steyn",
+  description:
+    "An interactive Windows-inspired portfolio for Mark Steyn, full-stack developer and building management systems integrator.",
+  applicationName: "MarkOS",
+  authors: [{ name: "Mark Steyn" }],
+  keywords: [
+    "Mark Steyn",
+    "full-stack developer",
+    "React",
+    "TypeScript",
+    "building management systems",
+    "BACnet",
+    "portfolio",
+  ],
+  openGraph: {
+    title: "MarkOS | Mark Steyn",
+    description: "Software for people. Systems for places.",
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#0c5db5",
 };
 
 export default function RootLayout({
@@ -21,26 +37,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <BodyWrapper>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <LenisProvider /> 
-          <ProgressBar />
-          <Header />
-          <main>
-            {children}
-          </main>
-          <MobileSpacer />
-          <BackToTopButton />
-          <Toaster position="top-right" />
-          <Analytics />
-        </ThemeProvider>
-      </BodyWrapper>
+    <html lang="en">
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/output/
+/.playwright-cli/
+/tmp/
 
 # next.js
 /.next/
@@ -39,6 +42,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local agent permissions
+/.claude/settings.local.json
 
 .vercel
 
