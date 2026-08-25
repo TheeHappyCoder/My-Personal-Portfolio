@@ -1,75 +1,157 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowLeft, ArrowRight, ChevronRight, MoreHorizontal, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import {
+  Beaker,
+  ChevronRight,
+  ExternalLink,
+  FileText,
+  FolderKanban,
+  Search,
+  Sparkles,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 import { labProjects, projects } from "@/data/portfolio";
 import { WindowsAsset } from "../shared/windows-asset";
 import type { PortfolioAppProps } from "./types";
 
+type ShowcaseSection = "showcase" | "lab" | "documents";
+const filters = ["All", "Flagship", "Product", "Client work", "Experiment"] as const;
+type ProjectFilter = (typeof filters)[number];
+
 export function ExplorerApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
-  const [section, setSection] = useState<"projects" | "lab" | "documents">("projects");
-  const title = section === "projects" ? "Selected work" : section === "lab" ? "The lab" : "Documents";
+  const [section, setSection] = useState<ShowcaseSection>("showcase");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<ProjectFilter>("All");
+  const featured = projects[0];
+
+  const filteredProjects = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return projects.filter((project) => {
+      const matchesFilter = filter === "All" || project.status === filter;
+      const searchable = `${project.title} ${project.eyebrow} ${project.summary} ${project.tech.join(" ")}`.toLowerCase();
+      return matchesFilter && (!normalizedQuery || searchable.includes(normalizedQuery));
+    });
+  }, [filter, query]);
+
+  const showFeatured = section === "showcase" && filter === "All" && !query.trim() && Boolean(featured);
+  const collectionProjects = showFeatured && featured ? filteredProjects.filter((project) => project.slug !== featured.slug) : filteredProjects;
+  const sectionLabel = section === "showcase" ? "Selected work" : section === "lab" ? "The lab" : "Documents";
 
   return (
-    <div className="explorer-app">
-      <aside className="explorer-sidebar">
-        <div className="explorer-sidebar-title"><WindowsAsset name="explorer" size={20} /> Mark&apos;s files</div>
-        <nav aria-label="File Explorer folders">
-          <button className={section === "projects" ? "selected" : ""} type="button" onClick={() => setSection("projects")}><WindowsAsset name="projects" size={18} /> Work</button>
-          <button className={section === "lab" ? "selected" : ""} type="button" onClick={() => setSection("lab")}><WindowsAsset name="tools" size={18} /> The lab</button>
-          <button className={section === "documents" ? "selected" : ""} type="button" onClick={() => setSection("documents")}><WindowsAsset name="documents" size={18} /> Documents</button>
-        </nav>
-        <div className="explorer-drive"><WindowsAsset name="windowsDrive" size={19} /><span><b>MarkOS (C:)</b><small>Curiosity mostly full</small></span></div>
-      </aside>
-
-      <main className="explorer-main">
-        <div className="explorer-toolbar">
-          <button type="button" aria-label="Back"><ArrowLeft size={16} /></button>
-          <button type="button" aria-label="Forward"><ArrowRight size={16} /></button>
-          <button type="button" aria-label="Refresh"><RefreshCw size={15} /></button>
-          <div className="address-bar"><WindowsAsset name="pc" size={16} /><ChevronRight size={13} /><span>Mark</span><ChevronRight size={13} /><b>{title}</b></div>
-          <button type="button" aria-label="More options"><MoreHorizontal size={17} /></button>
+    <div className="showcase-hub">
+      <aside className="showcase-sidebar">
+        <div className="showcase-brand">
+          <WindowsAsset name="projects" size={27} />
+          <span><b>My work</b><small>Project showcase</small></span>
         </div>
 
-        <div className="explorer-body">
-          <div className="explorer-heading">
-            <div><p>This PC / Mark</p><h2>{title}</h2></div>
-            <span>{section === "projects" ? `${projects.length} items` : section === "lab" ? `${labProjects.length} items` : "3 items"}</span>
-          </div>
+        <nav aria-label="Showcase sections">
+          <button className={section === "showcase" ? "selected" : ""} type="button" onClick={() => setSection("showcase")}><FolderKanban size={17} /> Showcase</button>
+          <button className={section === "lab" ? "selected" : ""} type="button" onClick={() => setSection("lab")}><Beaker size={17} /> The lab</button>
+          <button className={section === "documents" ? "selected" : ""} type="button" onClick={() => setSection("documents")}><FileText size={17} /> Documents</button>
+        </nav>
 
-          {section === "projects" ? (
-            <div className="file-card-grid">
-              {projects.map((project) => (
-                <button className="project-file-card" type="button" key={project.slug} onDoubleClick={() => onOpenProject(project.slug)} onClick={() => onOpenProject(project.slug)}>
-                  <div className="project-file-preview"><Image src={project.cover} alt="" fill loading="eager" sizes="260px" /><span>{project.status}</span></div>
-                  <div className="project-file-copy"><b>{project.title}</b><small>{project.eyebrow}</small></div>
-                </button>
-              ))}
+        <div className="showcase-sidebar-note">
+          <Sparkles size={15} />
+          <span><b>{projects.length} shipped projects</b><small>Products, platforms, and client work</small></span>
+        </div>
+      </aside>
+
+      <main className="showcase-main">
+        <header className="showcase-toolbar">
+          <div className="showcase-breadcrumb"><WindowsAsset name="pc" size={16} /><ChevronRight size={13} /><span>Mark</span><ChevronRight size={13} /><b>{sectionLabel}</b></div>
+          {section === "showcase" ? (
+            <label className="showcase-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search projects" aria-label="Search projects" /></label>
+          ) : null}
+        </header>
+
+        <div className="showcase-scroll">
+          {section === "showcase" ? (
+            <div className="showcase-work">
+              <header className="showcase-intro">
+                <div><span>Selected work</span><h2>Built systems, shown properly.</h2><p>Production software, operational platforms, and client sites. Open any project for full-screen proof and a focused case study.</p></div>
+                <strong>{filteredProjects.length}<small>{filteredProjects.length === 1 ? "project" : "projects"}</small></strong>
+              </header>
+
+              {showFeatured && featured ? (
+                <article className="showcase-featured">
+                  <button className="showcase-featured-media" type="button" onClick={() => onOpenProject(featured.slug)} aria-label={`Open ${featured.title} case study`}>
+                    <Image src={featured.gallery[0]} alt={`${featured.title} automation interface`} fill loading="eager" sizes="(max-width: 680px) 100vw, 58vw" />
+                    <span><WindowsAsset name="projects" size={18} /> Open flagship case study <ChevronRight size={15} /></span>
+                  </button>
+                  <div className="showcase-featured-copy">
+                    <div className="showcase-kicker"><span>{featured.status}</span><small>{featured.year}</small></div>
+                    <h3>{featured.title}</h3>
+                    <p className="showcase-featured-eyebrow">{featured.eyebrow}</p>
+                    <p>{featured.summary}</p>
+                    {featured.metrics?.length ? (
+                      <div className="showcase-featured-metrics">
+                        {featured.metrics.slice(0, 3).map((metric) => <span key={metric.label}><b>{metric.value}</b><small>{metric.label}</small></span>)}
+                      </div>
+                    ) : null}
+                    <div className="showcase-featured-actions">
+                      <button className="win-button primary" type="button" onClick={() => onOpenProject(featured.slug)}>Explore {featured.title}</button>
+                      {featured.liveUrl ? <a className="win-button" href={featured.liveUrl} target="_blank" rel="noreferrer">Visit live site <ExternalLink size={13} /></a> : null}
+                    </div>
+                  </div>
+                </article>
+              ) : null}
+
+              <div className="showcase-collection-heading">
+                <div><h3>{showFeatured ? "More selected work" : "Project results"}</h3><p>Choose a category or search by product, client, or technology.</p></div>
+                <div className="showcase-filters" role="group" aria-label="Filter projects">
+                  {filters.map((item) => <button type="button" key={item} className={filter === item ? "selected" : ""} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}
+                </div>
+              </div>
+
+              {collectionProjects.length ? (
+                <div className="showcase-project-grid">
+                  {collectionProjects.map((project) => (
+                    <button className="showcase-project-card" type="button" key={project.slug} onClick={() => onOpenProject(project.slug)}>
+                      <span className="showcase-project-image"><Image src={project.cover} alt={`${project.title} interface preview`} fill sizes="(max-width: 680px) 100vw, 36vw" /><i>{project.status}</i></span>
+                      <span className="showcase-project-copy">
+                        <span><b>{project.title}</b><small>{project.year}</small></span>
+                        <em>{project.eyebrow}</em>
+                        <p>{project.summary}</p>
+                        <span className="showcase-project-footer"><span>{project.tech.slice(0, 2).join(" · ")}</span><span>View project <ChevronRight size={13} /></span></span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="showcase-empty"><Search size={24} /><h3>No matching work</h3><p>Try another category or a broader search.</p><button className="win-button" type="button" onClick={() => { setQuery(""); setFilter("All"); }}>Show all projects</button></div>
+              )}
             </div>
           ) : null}
 
           {section === "lab" ? (
-            <div className="details-list">
-              {labProjects.map((project) => (
-                <article key={project.title}>
-                  <div className="file-type-icon lab"><WindowsAsset name="folder" size={29} /></div>
-                  <div><b>{project.title}</b><small>{project.type}</small><p>{project.note}</p><div className="mini-tags">{project.tech.map((tech) => <span key={tech}>{tech}</span>)}</div></div>
+            <section className="showcase-secondary-view">
+              <header><span>In progress</span><h2>The lab</h2><p>Ideas being tested before they earn a place in selected work.</p></header>
+              <div className="details-list">
+                {labProjects.map((project) => (
+                  <article key={project.title}>
+                    <div className="file-type-icon lab"><WindowsAsset name="folder" size={29} /></div>
+                    <div><b>{project.title}</b><small>{project.type}</small><p>{project.note}</p><div className="mini-tags">{project.tech.map((tech) => <span key={tech}>{tech}</span>)}</div></div>
+                  </article>
+                ))}
+                <article>
+                  <div className="file-type-icon"><WindowsAsset name="notepad" size={30} shortcut /></div>
+                  <div><b>more-ideas-than-weekends.txt</b><small>Text document</small><p>Prototypes, jokes, and suspiciously specific product thoughts.</p><button className="text-action" type="button" onClick={() => onOpenApp("notepad")}>Open in Notepad</button></div>
                 </article>
-              ))}
-              <article>
-                <div className="file-type-icon"><WindowsAsset name="notepad" size={30} shortcut /></div>
-                <div><b>more-ideas-than-weekends.txt</b><small>Text document</small><p>Open Notepad for prototypes, jokes, and suspiciously specific thoughts.</p><button className="text-action" type="button" onClick={() => onOpenApp("notepad")}>Open in Notepad</button></div>
-              </article>
-            </div>
+              </div>
+            </section>
           ) : null}
 
           {section === "documents" ? (
-            <div className="documents-grid">
-              <button type="button" onClick={() => onOpenApp("resume")}><div className="file-type-icon pdf"><WindowsAsset name="file" size={39} /></div><b>Mark-Steyn-CV.pdf</b><small>PDF document</small></button>
-              <button type="button" onClick={() => onOpenApp("about")}><div className="file-type-icon"><WindowsAsset name="user" size={42} /></div><b>About Mark</b><small>File folder</small></button>
-              <button type="button" onClick={() => onOpenApp("contact")}><div className="file-type-icon mail"><WindowsAsset name="network" size={40} shortcut /></div><b>Contact.url</b><small>Internet shortcut</small></button>
-            </div>
+            <section className="showcase-secondary-view">
+              <header><span>Useful files</span><h2>Documents</h2><p>Resume, background, and direct contact routes.</p></header>
+              <div className="documents-grid">
+                <button type="button" onClick={() => onOpenApp("resume")}><div className="file-type-icon pdf"><WindowsAsset name="file" size={39} /></div><b>Mark-Steyn-CV.pdf</b><small>PDF document</small></button>
+                <button type="button" onClick={() => onOpenApp("about")}><div className="file-type-icon"><WindowsAsset name="user" size={42} /></div><b>About Mark</b><small>Profile folder</small></button>
+                <button type="button" onClick={() => onOpenApp("contact")}><div className="file-type-icon mail"><WindowsAsset name="network" size={40} shortcut /></div><b>Contact.url</b><small>Open contact app</small></button>
+              </div>
+            </section>
           ) : null}
         </div>
       </main>

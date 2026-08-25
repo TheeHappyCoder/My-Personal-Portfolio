@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   ChevronRight,
   CirclePower,
@@ -9,6 +9,7 @@ import {
   Moon,
   MoreHorizontal,
   Network,
+  Palette,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -22,6 +23,13 @@ import Image from "next/image";
 import profilePhoto from "@/assets/profile/profile.jpg";
 import { getPortfolioProject, profile, projects } from "@/data/portfolio";
 import { AppContent, AppId } from "./apps";
+import {
+  APPEARANCE_STORAGE_KEY,
+  type AppearancePreferences,
+  defaultAppearancePreferences,
+  readAppearancePreferences,
+  writeAppearancePreferences,
+} from "./appearance";
 import { WindowFrame, WindowPosition, WindowSize } from "./window-frame";
 import { WindowsAsset, WindowsIconName } from "./shared/windows-asset";
 
@@ -45,8 +53,9 @@ type AppMeta = {
 
 const APP_META: Record<AppId, AppMeta> = {
   welcome: { title: "Welcome to MarkOS", size: { width: 920, height: 632 }, position: { x: 150, y: 18 } },
-  explorer: { title: "File Explorer", size: { width: 1020, height: 650 }, position: { x: 92, y: 42 } },
+  explorer: { title: "My work — Showcase", size: { width: 1120, height: 680 }, position: { x: 70, y: 24 } },
   about: { title: "About Mark", size: { width: 930, height: 650 }, position: { x: 180, y: 50 } },
+  settings: { title: "Settings", size: { width: 980, height: 660 }, position: { x: 154, y: 38 } },
   skills: { title: "Skills - Settings", size: { width: 940, height: 640 }, position: { x: 170, y: 45 } },
   photos: { title: "Photos", size: { width: 930, height: 640 }, position: { x: 145, y: 48 } },
   notepad: { title: "reminders.txt - Notepad", size: { width: 820, height: 590 }, position: { x: 230, y: 72 } },
@@ -55,7 +64,7 @@ const APP_META: Record<AppId, AppMeta> = {
   terminal: { title: "mark@portfolio:~ — Windows Terminal", size: { width: 860, height: 550 }, position: { x: 220, y: 84 } },
   contact: { title: "Contact Mark", size: { width: 820, height: 570 }, position: { x: 230, y: 72 } },
   resume: { title: "Mark-Steyn-CV.pdf", size: { width: 850, height: 660 }, position: { x: 210, y: 36 } },
-  project: { title: "Project", size: { width: 1030, height: 660 }, position: { x: 110, y: 34 } },
+  project: { title: "Project showcase", size: { width: 1160, height: 690 }, position: { x: 50, y: 18 } },
 };
 
 const initialWindow: WindowModel = {
@@ -72,6 +81,7 @@ const initialWindow: WindowModel = {
 const desktopShortcuts: Array<{ label: string; app: AppId; payload?: string; icon: WindowsIconName; shortcut?: boolean }> = [
   { label: "My work", app: "explorer", icon: "projects" },
   { label: "About Mark", app: "about", icon: "user" },
+  { label: "Settings", app: "settings", icon: "settings" },
   { label: "Skills", app: "skills", icon: "tools" },
   { label: "Photos", app: "photos", icon: "pictures" },
   { label: "Resume.pdf", app: "resume", icon: "file" },
@@ -91,6 +101,7 @@ function AppGlyph({ app, size = 18 }: { app: AppId; size?: number }) {
     welcome: "windowsStart",
     explorer: "explorer",
     about: "user",
+    settings: "settings",
     skills: "settings",
     photos: "pictures",
     notepad: "notepad",
@@ -111,7 +122,8 @@ export function PortfolioDesktop() {
   const [startOpen, setStartOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [darkMode, setDarkMode] = useState(false);
+  const [appearance, setAppearance] = useState<AppearancePreferences>(readAppearancePreferences);
+  const [systemDark, setSystemDark] = useState(() => typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   const [locked, setLocked] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -123,6 +135,26 @@ export function PortfolioDesktop() {
     tick();
     const timer = window.setInterval(tick, 30_000);
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncSystemTheme = () => setSystemDark(media.matches);
+    syncSystemTheme();
+    media.addEventListener("change", syncSystemTheme);
+    return () => media.removeEventListener("change", syncSystemTheme);
+  }, []);
+
+  useEffect(() => {
+    writeAppearancePreferences(appearance);
+  }, [appearance]);
+
+  useEffect(() => {
+    const syncStoredAppearance = (event: StorageEvent) => {
+      if (event.key === APPEARANCE_STORAGE_KEY) setAppearance(readAppearancePreferences());
+    };
+    window.addEventListener("storage", syncStoredAppearance);
+    return () => window.removeEventListener("storage", syncStoredAppearance);
   }, []);
 
   useEffect(() => {
@@ -209,6 +241,18 @@ export function PortfolioDesktop() {
     window.setTimeout(() => setToast(null), 1800);
   };
 
+  const updateAppearance = (patch: Partial<AppearancePreferences>) => {
+    setAppearance((current) => ({ ...current, ...patch }));
+  };
+
+  const resetAppearance = () => {
+    setAppearance({ ...defaultAppearancePreferences });
+    showToast("Appearance reset to defaults.");
+  };
+
+  const isDark = appearance.theme === "dark" || (appearance.theme === "system" && systemDark);
+  const toggleDarkMode = () => updateAppearance({ theme: isDark ? "light" : "dark" });
+
   const activateShortcut = (label: string, app: AppId, payload?: string) => {
     setSelectedShortcut(label);
     openApp(app, payload);
@@ -226,16 +270,26 @@ export function PortfolioDesktop() {
   const longDate = now?.toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long" }) ?? "Welcome";
 
   return (
-    <div
-      className="markos-desktop"
-      data-theme={darkMode ? "dark" : "light"}
-      onClick={() => { setSelectedShortcut(null); setContextMenu(null); }}
-      onContextMenu={(event) => {
-        if ((event.target as HTMLElement).closest(".app-window, .taskbar, .start-menu, .quick-panel")) return;
-        event.preventDefault();
-        setContextMenu({ x: event.clientX, y: event.clientY });
-      }}
-    >
+    <MotionConfig reducedMotion={appearance.reduceMotion ? "always" : "user"}>
+      <div
+        id="markos-desktop"
+        className="markos-desktop"
+        data-theme={isDark ? "dark" : "light"}
+        data-theme-mode={appearance.theme}
+        data-font={appearance.font}
+        data-text-size={appearance.textSize}
+        data-wallpaper={appearance.wallpaper}
+        data-accent={appearance.accent}
+        data-transparency={appearance.transparency ? "on" : "off"}
+        data-motion={appearance.reduceMotion ? "reduced" : "full"}
+        suppressHydrationWarning
+        onClick={() => { setSelectedShortcut(null); setContextMenu(null); }}
+        onContextMenu={(event) => {
+          if ((event.target as HTMLElement).closest(".app-window, .taskbar, .start-menu, .quick-panel")) return;
+          event.preventDefault();
+          setContextMenu({ x: event.clientX, y: event.clientY });
+        }}
+      >
       <div className="wallpaper" aria-hidden="true"><span className="wallpaper-ribbon one" /><span className="wallpaper-ribbon two" /><span className="wallpaper-ribbon three" /><span className="wallpaper-glow" /></div>
 
       <main className="desktop-area" aria-label="MarkOS desktop">
@@ -279,7 +333,7 @@ export function PortfolioDesktop() {
               onMaximize={() => toggleMaximize(item.id)}
               onClose={() => closeWindow(item.id)}
             >
-              <AppContent app={item.app} payload={item.payload} onOpenApp={openApp} onOpenProject={openProject} />
+              <AppContent app={item.app} payload={item.payload} onOpenApp={openApp} onOpenProject={openProject} appearance={appearance} onAppearanceChange={updateAppearance} onResetAppearance={resetAppearance} />
             </WindowFrame>
           ))}
         </AnimatePresence>
@@ -327,7 +381,7 @@ export function PortfolioDesktop() {
               <>
                 <div className="start-section-heading"><b>Pinned</b><button type="button" onClick={() => openApp("explorer")}>All apps <ChevronRight size={13} /></button></div>
                 <div className="pinned-grid">
-                  {(["explorer", "browser", "about", "skills", "photos", "chat", "notepad", "terminal", "resume", "contact"] as AppId[]).map((app) => (
+                  {(["explorer", "browser", "about", "settings", "skills", "photos", "chat", "notepad", "terminal", "resume", "contact"] as AppId[]).map((app) => (
                     <button type="button" key={app} onClick={() => openApp(app)}><AppGlyph app={app} size={25} /><span>{APP_META[app].title.replace(" - Settings", "").replace("Mark-Steyn-CV.pdf", "Resume")}</span></button>
                   ))}
                 </div>
@@ -350,12 +404,12 @@ export function PortfolioDesktop() {
             <div className="quick-toggle-grid">
               <button type="button" className="on"><Wifi /><span>Wi-Fi</span><ChevronRight /></button>
               <button type="button" className="on"><Network /><span>Network</span></button>
-              <button type="button" onClick={() => setDarkMode((value) => !value)} className={darkMode ? "on" : ""}>{darkMode ? <Moon /> : <Sun />}<span>Dark apps</span></button>
+              <button type="button" onClick={toggleDarkMode} className={isDark ? "on" : ""}>{isDark ? <Moon /> : <Sun />}<span>Dark mode</span></button>
               <button type="button" onClick={() => showToast("Focus mode: unnecessary notifications ignored.")}><Sparkles /><span>Focus</span></button>
             </div>
             <label className="quick-slider"><Sun size={15} /><input type="range" aria-label="Brightness" min="20" max="100" defaultValue="86" /></label>
             <label className="quick-slider"><Volume2 size={15} /><input type="range" aria-label="Volume" min="0" max="100" defaultValue="42" /></label>
-            <footer><span><b>{timeText}</b><small>{longDate}</small></span><button type="button" onClick={() => setQuickOpen(false)} aria-label="Quick settings"><SlidersHorizontal size={17} /></button></footer>
+            <footer><span><b>{timeText}</b><small>{longDate}</small></span><button type="button" onClick={() => openApp("settings")} aria-label="Open Settings"><SlidersHorizontal size={17} /></button></footer>
           </motion.aside>
         )}
       </AnimatePresence>
@@ -366,7 +420,7 @@ export function PortfolioDesktop() {
             <button type="button" onClick={() => openApp("explorer")}><WindowsAsset name="projects" size={16} /> Open my work</button>
             <button type="button" onClick={() => { showToast("Desktop refreshed. Curiosity restored."); setContextMenu(null); }}><MoreHorizontal size={16} /> Refresh</button>
             <div />
-            <button type="button" onClick={() => { setDarkMode((value) => !value); setContextMenu(null); }}>{darkMode ? <Sun size={16} /> : <Moon size={16} />} Personalize</button>
+            <button type="button" onClick={() => openApp("settings")}><Palette size={16} /> Personalize</button>
             <button type="button" onClick={() => { openApp("about"); setContextMenu(null); }}><Info size={16} /> About MarkOS</button>
           </motion.div>
         )}
@@ -385,6 +439,7 @@ export function PortfolioDesktop() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </MotionConfig>
   );
 }

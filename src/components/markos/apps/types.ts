@@ -2,6 +2,7 @@ export type AppId =
   | "welcome"
   | "explorer"
   | "about"
+  | "settings"
   | "skills"
   | "photos"
   | "notepad"
