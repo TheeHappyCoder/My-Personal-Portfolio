@@ -10,8 +10,19 @@ export type PortfolioProject = {
   tech: string[];
   cover: string;
   gallery: string[];
+  galleryLabels?: string[];
   accent: string;
   status: "Flagship" | "Product" | "Client work" | "Experiment";
+  liveUrl?: string;
+  metrics?: {
+    value: string;
+    label: string;
+  }[];
+  scope?: {
+    title: string;
+    detail: string;
+  }[];
+  scopeHeading?: string;
 };
 
 export const profile = {
@@ -29,36 +40,142 @@ export const projects: PortfolioProject[] = [
   {
     slug: "novacore",
     title: "NovaCore",
-    eyebrow: "Building management system",
-    role: "Lead developer & systems integrator",
+    eyebrow: "On-premises automation platform + cloud control plane",
+    role: "Product architect, lead developer & BMS integrator",
     year: "2020 - present",
     summary:
-      "A building and smart-home automation platform for live monitoring, control, alarming, scheduling, and interactive floor-plan visualisation.",
+      "A complete operational platform spanning edge protocols, project engineering, deterministic control, graphics, alarming, schedules, automations, security, audit, and secure cloud access.",
     problem:
-      "Traditional building systems are expensive, proprietary, and often feel decades behind the software people use every day.",
+      "Traditional building platforms are protocol-first, difficult to explain, expensive to extend, and full of hidden state. Operators need clarity; integrators need exact technical control; organisations need a safe path from one local system to a connected estate.",
     solution:
-      "NovaCore brings BACnet, KNX, live device data, alarms, schedules, and custom graphics into one modern web application.",
+      "NovaCore separates protocol evidence from product truth. Stable points, explicit operational context, reviewed engineering actions, and a deterministic P1-P16 command model power the local platform. NovaCloud adds organisations, licensing, connected systems, projects, people, and outbound-only remote access without becoming a dependency for local operation.",
     tech: [
+      "Vite",
       "Next.js",
-      "React",
+      "React 19",
       "TypeScript",
       "Express",
       "SQLite",
       "WebSockets",
       "BACnet",
+      "Modbus",
       "KNX",
+      "MQTT",
+      "M-Bus",
+      "Supabase",
     ],
-    cover: "/novacore/1.png",
+    cover: "/novacore/13.png",
     gallery: [
-      "/novacore/1.png",
+      "/novacore-2026/core-automation.png",
+      "/novacore-2026/core-engineering.png",
+      "/novacore-2026/core-entities.png",
+      "/novacore-2026/core-alarms.png",
+      "/novacore-2026/core-responsive-graphic.png",
+      "/novacore-2026/core-cloud-services.png",
+      "/novacore-2026/cloud-overview.png",
+      "/novacore-2026/cloud-systems.png",
       "/novacore/13.png",
-      "/novacore/23.png",
       "/novacore/34.png",
-      "/novacore/42.png",
-      "/novacore/46.png",
     ],
+    galleryLabels: [
+      "Meaning-bound When / If / Then automation builder",
+      "Exact point selection and reviewed bulk engineering",
+      "Entity hierarchy with contextual point meanings",
+      "Immutable alarm-condition engineering",
+      "Responsive live-graphic preview across viewport presets",
+      "Local NovaCore system connected securely to NovaCloud",
+      "NovaCloud organisation overview and remote project access",
+      "Connected-system capacity and operational status",
+      "Interactive 3D building visualisation",
+      "BACnet discovery and device engineering",
+    ],
+    metrics: [
+      { value: "2 apps", label: "NovaCore + NovaCloud" },
+      { value: "7 sources", label: "Building and virtual drivers" },
+      { value: "P1-P16", label: "Deterministic command stack" },
+      { value: "Local-first", label: "Cloud remains optional" },
+    ],
+    scope: [
+      {
+        title: "Protocol-neutral engineering",
+        detail: "Discover and add devices and points from BACnet, Modbus, MQTT, HTTP, KNX, M-Bus, and virtual sources through one reviewed workflow.",
+      },
+      {
+        title: "Operational context",
+        detail: "Model sites, floors, spaces, equipment, relationships, classes, and user-defined point meanings without sacrificing exact point identity.",
+      },
+      {
+        title: "Graphics and 3D",
+        detail: "Build reusable operational graphics, bind live point state, navigate whole facilities, and move from estate context into equipment detail.",
+      },
+      {
+        title: "Control and evidence",
+        detail: "Keep observations, commands, readback, quality, priority ownership, reachability, and audit provenance distinct and explainable.",
+      },
+      {
+        title: "Operations suite",
+        detail: "Author schedules, alarms, trends, notifications, logbook entries, and When / If / Then automations over exact compiled targets.",
+      },
+      {
+        title: "Cloud control plane",
+        detail: "Manage organisations, people, systems, projects, plans, signed licences, pairing, and short-lived remote access from NovaCloud.",
+      },
+    ],
+    scopeHeading: "Local platform, cloud control plane, one product.",
     accent: "#111827",
     status: "Flagship",
+  },
+  {
+    slug: "practly",
+    title: "Practly",
+    eyebrow: "Physiotherapy practice operations",
+    role: "Product design & full-stack development",
+    year: "2026",
+    summary:
+      "A calm, secure workspace built for Lizl Kruger Physiotherapy to manage hospital patients, rooms care, staff, consent, documents, medical aids, and follow-up alerts.",
+    problem:
+      "Patient administration was spread across hand-offs, documents, and practice knowledge. Hospital admissions and continued rooms care needed one clear record without turning a small practice into a maze of enterprise software.",
+    solution:
+      "Practly follows the real care journey: create a hospital file, retain admission history, move discharged patients into rooms care, manage supporting documents and consent, and keep practice-owned reference data in one role-aware workspace.",
+    tech: ["Next.js 16", "React 19", "TypeScript", "Supabase Auth", "Supabase Storage", "PostgreSQL", "Tailwind CSS"],
+    cover: "/practly/overview.png",
+    gallery: [
+      "/practly/overview.png",
+      "/practly/hospital-intake.png",
+      "/practly/information-sheets.png",
+    ],
+    galleryLabels: [
+      "Practice overview and operational readiness",
+      "Hospital patient intake with previous-file lookup",
+      "Approved procedure PDF library",
+    ],
+    metrics: [
+      { value: "1 workspace", label: "Single-practice focus" },
+      { value: "2 care paths", label: "Hospital + rooms" },
+      { value: "Role-aware", label: "Protected staff workflows" },
+      { value: "Secure files", label: "Consent and clinical documents" },
+    ],
+    scope: [
+      {
+        title: "Hospital workflow",
+        detail: "Patient lookup, admission details, medical-aid context, ICD information, notes, discharge, readmission history, and supporting documents.",
+      },
+      {
+        title: "Continuity into rooms",
+        detail: "Move discharged patients into ongoing rooms care while keeping their hospital history connected to the same patient record.",
+      },
+      {
+        title: "Consent and information",
+        detail: "Generate consent workflows and maintain an approved PDF library that staff can send directly from a patient file.",
+      },
+      {
+        title: "Practice administration",
+        detail: "Manage staff, medical aids, practice details, access, and persistent follow-up alerts from one restrained interface.",
+      },
+    ],
+    scopeHeading: "Care operations, designed as one workflow.",
+    accent: "#315fd8",
+    status: "Client work",
   },
   {
     slug: "legal-practice-suite",
@@ -120,11 +237,79 @@ export const projects: PortfolioProject[] = [
     problem:
       "A broad systems company needed a clear digital front door without reducing its work to a generic list of services.",
     solution:
-      "Large visual storytelling, crisp routes into products and industries, and a confident technical identity make the offer easy to scan.",
-    tech: ["Responsive design", "Frontend development", "Interaction design", "Performance"],
-    cover: "/websites/abt.png",
-    gallery: ["/websites/abt.png"],
+      "A cinematic, systems-led website connects ABT's company story, STRATOS platform, industries, and delivered building work. Searchable projects and deep product storytelling turn technical capability into visible proof.",
+    tech: ["Next.js", "React", "Responsive design", "Motion design", "Video", "Performance"],
+    cover: "/websites/abt-home.png",
+    gallery: ["/websites/abt-home.png", "/websites/abt-products.png", "/websites/abt-projects.png"],
+    galleryLabels: [
+      "Animated edge-to-cloud brand story",
+      "STRATOS product narrative",
+      "Searchable project portfolio",
+    ],
+    liveUrl: "https://abtv2.vercel.app/",
+    scope: [
+      {
+        title: "Brand narrative",
+        detail: "A cinematic opening positions smart-building automation as connected infrastructure, not a generic services list.",
+      },
+      {
+        title: "Product storytelling",
+        detail: "Dedicated STRATOS content explains control, alarming, schedules, trends, protocol integration, remote operations, and indoor-air-quality work.",
+      },
+      {
+        title: "Project proof",
+        detail: "A searchable portfolio exposes real buildings, systems, locations, project types, and detailed graphics work.",
+      },
+      {
+        title: "Conversion paths",
+        detail: "Products, industries, projects, company context, and contact routes remain clear beneath a highly visual presentation.",
+      },
+    ],
+    scopeHeading: "A technical company made legible.",
     accent: "#142838",
+    status: "Client work",
+  },
+  {
+    slug: "botha-partners",
+    title: "Botha Partners",
+    eyebrow: "Editorial law-firm website",
+    role: "Design & development",
+    year: "2026",
+    summary:
+      "A premium editorial website for a Pretoria law firm, balancing its 1982 legacy with a sharp contemporary identity, clear expertise paths, partner profiles, insights, and direct contact journeys.",
+    problem:
+      "A long-established legal practice needed to feel credible without becoming conservative or interchangeable. Its history, people, expertise, and personal service all needed distinct space inside one coherent digital identity.",
+    solution:
+      "Oversized typography, monochrome art direction, restrained motion, and structured expertise pages create a confident site that feels established and current. Clear contact and appointment paths keep the visual concept commercially useful.",
+    tech: ["HTML", "CSS", "JavaScript", "Bootstrap", "GSAP", "Swiper", "Responsive design"],
+    cover: "/websites/botha-home.png",
+    gallery: ["/websites/botha-home.png", "/websites/botha-expertise.png", "/websites/botha-about.png"],
+    galleryLabels: [
+      "Monochrome editorial home page",
+      "Visual expertise directory",
+      "Legacy-led firm story",
+    ],
+    liveUrl: "https://bothapartnerswebsite.vercel.app/",
+    scope: [
+      {
+        title: "Positioning",
+        detail: "A direct 'Your partner in law' message anchors property, commercial, family, litigation, and estate-planning expertise.",
+      },
+      {
+        title: "Editorial system",
+        detail: "Large type, serif contrast, monochrome imagery, smooth scrolling, and subtle interaction produce a distinctive but disciplined identity.",
+      },
+      {
+        title: "Trust architecture",
+        detail: "Firm history, partner profiles, areas of expertise, organisational proof, and transparent practice values build confidence across the site.",
+      },
+      {
+        title: "Complete site journey",
+        detail: "Home, about, expertise detail, team, insights, and contact pages form a responsive, conversion-ready public presence.",
+      },
+    ],
+    scopeHeading: "Legacy translated into a complete digital system.",
+    accent: "#323639",
     status: "Client work",
   },
   {
@@ -148,12 +333,6 @@ export const projects: PortfolioProject[] = [
 ];
 
 export const labProjects = [
-  {
-    title: "NovaCloud",
-    type: "Cloud management portal",
-    note: "Multi-tenant oversight, installations, licensing, maps, and analytics for distributed NovaCore sites.",
-    tech: ["Next.js", "TypeScript", "Supabase", "Leaflet"],
-  },
   {
     title: "Align",
     type: "AI-assisted personal finance",

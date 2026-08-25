@@ -9,11 +9,12 @@ type PhotoItem = { src: string | StaticImageData; label: string; category: strin
 
 const photos: PhotoItem[] = [
   { src: profilePhoto, label: "Mark, currently not debugging", category: "People" },
-  { src: "/novacore/1.png", label: "NovaCore sign-in", category: "Work" },
-  { src: "/novacore/13.png", label: "NovaCore interface", category: "Work" },
+  { src: "/novacore-2026/core-automation.png", label: "NovaCore automation builder", category: "Work" },
+  { src: "/practly/overview.png", label: "Practly practice operations", category: "Work" },
   { src: "/lawFirm/1.webp", label: "Legal operations dashboard", category: "Work" },
   { src: "/droplet/2.png", label: "Droplet local hand-off", category: "Experiments" },
-  { src: "/websites/abt.png", label: "Africa Building Technologies", category: "Websites" },
+  { src: "/websites/abt-home.png", label: "Africa Building Technologies", category: "Websites" },
+  { src: "/websites/botha-home.png", label: "Botha Partners", category: "Websites" },
   { src: "/websites/tagon.png", label: "Tagon", category: "Websites" },
 ];
 

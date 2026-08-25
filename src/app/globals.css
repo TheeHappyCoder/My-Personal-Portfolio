@@ -714,12 +714,23 @@ button {
 .project-meta { display: flex; flex-wrap: wrap; gap: 25px; }
 .project-meta span { display: flex; flex-direction: column; color: var(--text-muted); font-size: 11px; }
 .project-meta b { margin-bottom: 3px; color: var(--text); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+.project-meta > a { align-self: flex-end; margin-left: auto; padding: 7px 9px; border-radius: 6px; background: var(--primary); color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 500; }
 .project-lede { max-width: 720px; margin: 25px 0; font-size: clamp(17px, 2vw, 23px); line-height: 1.45; letter-spacing: -0.02em; }
+.project-metric-grid { margin: 0 0 24px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+.project-metric-grid > div { min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); display: flex; flex-direction: column; box-shadow: var(--shadow-resting); }
+.project-metric-grid b { font-size: 15px; font-weight: 500; letter-spacing: -0.02em; }
+.project-metric-grid span { margin-top: 3px; color: var(--text-muted); font-size: 9px; line-height: 1.35; }
 .problem-solution-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .problem-solution-grid article { position: relative; padding: 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
 .problem-solution-grid article > span { position: absolute; top: 14px; right: 14px; color: var(--text-muted); font-size: 9px; }
 .problem-solution-grid h3 { margin: 0 0 9px; font-size: 13px; font-weight: 500; }
 .problem-solution-grid p { margin: 0; color: var(--text-muted); font-size: 11.5px; line-height: 1.55; }
+.project-scope { margin-top: 26px; }
+.project-scope > h3 { max-width: 620px; margin: 0 0 12px; font-size: 17px; font-weight: 500; letter-spacing: -0.025em; }
+.project-scope > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.project-scope article { padding: 14px; border-radius: 8px; background: var(--accent); }
+.project-scope article b { font-size: 11px; font-weight: 500; }
+.project-scope article p { margin: 5px 0 0; color: var(--text-muted); font-size: 10.5px; line-height: 1.5; }
 .project-tech { margin-top: 24px; }
 .project-tech h3 { margin: 0 0 9px; font-size: 11px; font-weight: 500; }
 .project-tech > div { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1070,12 +1081,23 @@ button {
 .share-meta { display: flex; flex-wrap: wrap; gap: 40px; }
 .share-meta span { display: flex; flex-direction: column; color: #667383; font-size: 12px; }
 .share-meta b { margin-bottom: 5px; color: #18202d; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+.share-meta > a { align-self: flex-end; margin-left: auto; padding: 10px 13px; border-radius: 7px; background: #1268b3; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 500; }
 .share-lede { max-width: 930px; margin: 45px 0 65px; font-size: clamp(28px, 5vw, 57px); line-height: 1.08; letter-spacing: -0.045em; }
+.share-metrics { margin: -20px 0 70px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.share-metrics > div { min-width: 0; padding: 22px; border: 1px solid rgba(24, 32, 45, 0.12); border-radius: 16px; background: white; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(24, 32, 45, 0.05); }
+.share-metrics strong { font-size: clamp(22px, 3vw, 34px); font-weight: 500; letter-spacing: -0.04em; }
+.share-metrics span { margin-top: 5px; color: #667383; font-size: 11px; line-height: 1.4; }
 .share-problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .share-problem-grid section { position: relative; min-height: 220px; padding: clamp(24px, 4vw, 44px); border: 1px solid rgba(24, 32, 45, 0.12); border-radius: 16px; background: white; }
 .share-problem-grid section > span { position: absolute; top: 25px; right: 25px; color: #8792a0; font-size: 10px; }
 .share-problem-grid h2 { margin: 0 0 18px; font-size: 22px; font-weight: 500; }
 .share-problem-grid p { margin: 0; color: #667383; font-size: 15px; line-height: 1.7; }
+.share-scope { margin: 90px 0 0; }
+.share-scope-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.share-scope-grid article { position: relative; min-height: 210px; padding: clamp(24px, 4vw, 38px); border: 1px solid rgba(24, 32, 45, 0.12); border-radius: 18px; background: white; box-shadow: 0 1px 2px rgba(24, 32, 45, 0.04); }
+.share-scope-grid article > span { position: absolute; top: 24px; right: 25px; color: #8792a0; font-size: 10px; font-variant-numeric: tabular-nums; }
+.share-scope-grid h3 { max-width: 80%; margin: 0 0 18px; font-size: 22px; font-weight: 500; letter-spacing: -0.025em; }
+.share-scope-grid p { margin: 0; color: #667383; font-size: 14px; line-height: 1.7; }
 .share-tech { margin: 70px 0 90px; }
 .share-tech > p { margin: 0 0 13px; color: #667383; font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; }
 .share-tech > div { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -1083,8 +1105,10 @@ button {
 .share-section-heading span { color: #0067c0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; }
 .share-section-heading h2 { margin: 8px 0 28px; font-size: clamp(35px, 5vw, 62px); font-weight: 500; letter-spacing: -0.045em; }
 .share-gallery { display: grid; gap: 16px; }
+.share-gallery-item { margin: 0; display: grid; gap: 9px; }
 .share-gallery-image { position: relative; width: 100%; aspect-ratio: 16 / 9; border: 1px solid rgba(24, 32, 45, 0.12); border-radius: 15px; overflow: hidden; background: #dfe6ec; }
 .share-gallery-image img { object-fit: cover; }
+.share-gallery-item figcaption { padding: 0 5px 6px; color: #667383; font-size: 11px; }
 .share-footer { margin-top: 90px; padding: clamp(30px, 6vw, 65px); border-radius: 18px; background: linear-gradient(145deg, #0878d3, #15439a); color: white; display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; }
 .share-footer span { color: #a9dcff; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
 .share-footer h2 { margin: 8px 0 0; font-size: clamp(30px, 5vw, 58px); font-weight: 500; letter-spacing: -0.045em; }
@@ -1096,6 +1120,7 @@ button {
   .photo-grid { grid-template-columns: repeat(3, 1fr); }
   .chrome-project-page { grid-template-columns: 1fr; }
   .chrome-project-cover { min-height: 250px; }
+  .project-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 680px) {
@@ -1199,8 +1224,13 @@ button {
   .lock-login { opacity: 1; }
   .lock-time { opacity: 0; }
   .share-nav span { display: none; }
+  .share-meta > a { width: 100%; margin-left: 0; justify-content: center; }
+  .share-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .share-problem-grid { grid-template-columns: 1fr; }
+  .share-scope-grid { grid-template-columns: 1fr; }
   .share-footer { align-items: flex-start; flex-direction: column; }
+  .project-meta > a { width: 100%; margin-left: 0; justify-content: center; }
+  .project-scope > div { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -21,7 +21,7 @@ export default async function ShareableProjectPage({ params }: { params: Promise
       </nav>
 
       <header className="share-hero" style={{ backgroundColor: project.accent }}>
-        <Image src={project.cover} alt={`${project.title} interface`} fill priority sizes="100vw" />
+        <Image src={project.cover} alt={`${project.title} interface`} fill loading="eager" sizes="100vw" />
         <div />
         <section>
           <span>{project.status}</span>
@@ -34,13 +34,41 @@ export default async function ShareableProjectPage({ params }: { params: Promise
         <div className="share-meta">
           <span><b>Role</b>{project.role}</span>
           <span><b>Timeline</b>{project.year}</span>
+          {project.liveUrl ? (
+            <a href={project.liveUrl} target="_blank" rel="noreferrer">
+              Visit live site <ArrowUpRight size={15} />
+            </a>
+          ) : null}
         </div>
         <p className="share-lede">{project.summary}</p>
+
+        {project.metrics?.length ? (
+          <section className="share-metrics" aria-label={`${project.title} project facts`}>
+            {project.metrics.map((metric) => (
+              <div key={metric.label}><strong>{metric.value}</strong><span>{metric.label}</span></div>
+            ))}
+          </section>
+        ) : null}
 
         <div className="share-problem-grid">
           <section><span>01</span><h2>Problem</h2><p>{project.problem}</p></section>
           <section><span>02</span><h2>Response</h2><p>{project.solution}</p></section>
         </div>
+
+        {project.scope?.length ? (
+          <section className="share-scope">
+            <div className="share-section-heading"><span>Product scope</span><h2>{project.scopeHeading ?? "What shipped."}</h2></div>
+            <div className="share-scope-grid">
+              {project.scope.map((item, index) => (
+                <article key={item.title}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.detail}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="share-tech">
           <p>Built with</p>
@@ -50,9 +78,12 @@ export default async function ShareableProjectPage({ params }: { params: Promise
         <section className="share-gallery">
           <div className="share-section-heading"><span>Gallery</span><h2>Interface details</h2></div>
           {project.gallery.map((image, index) => (
-            <div className="share-gallery-image" key={image}>
-              <Image src={image} alt={`${project.title} screenshot ${index + 1}`} fill sizes="(max-width: 900px) 100vw, 1100px" />
-            </div>
+            <figure className="share-gallery-item" key={image}>
+              <div className="share-gallery-image">
+                <Image src={image} alt={project.galleryLabels?.[index] ?? `${project.title} screenshot ${index + 1}`} fill sizes="(max-width: 900px) 100vw, 1100px" />
+              </div>
+              {project.galleryLabels?.[index] ? <figcaption>{project.galleryLabels[index]}</figcaption> : null}
+            </figure>
           ))}
         </section>
 

@@ -36,14 +36,14 @@ function answerPrompt(prompt: string): Omit<ChatMessage, "role"> {
 
   if (lower.includes("best project") || lower.includes("novacore")) {
     return {
-      text: "Start with NovaCore. Mark designed and built it to turn dense building-system data into a clear, real-time interface. It is the cleanest overlap of his product thinking, TypeScript work, and systems-integration experience.",
+      text: "Start with NovaCore. It is not one dashboard: Mark designed a local automation platform, protocol-neutral engineering model, graphics runtime, control engine, operations suite, security layer, and NovaCloud control plane. It is the clearest overlap of his product architecture, TypeScript work, and hands-on systems-integration experience.",
       action: { label: "Open NovaCore case study", project: "novacore" },
     };
   }
 
   if (lower.includes("actually build") || lower.includes("what does mark") || lower.includes("work")) {
     return {
-      text: "Mark builds the layer between complicated systems and the people who use them: real-time dashboards, operational tools, web products, and integrations that make hardware, software, and data behave like one product.",
+      text: "Mark builds the layer between complicated systems and the people who use them: automation platforms, operational tools, focused client applications, and high-craft websites that make hardware, software, data, and business goals behave like one product.",
       action: { label: "Browse selected work", app: "explorer" },
     };
   }

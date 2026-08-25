@@ -42,7 +42,7 @@ export function ExplorerApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
             <div className="file-card-grid">
               {projects.map((project) => (
                 <button className="project-file-card" type="button" key={project.slug} onDoubleClick={() => onOpenProject(project.slug)} onClick={() => onOpenProject(project.slug)}>
-                  <div className="project-file-preview"><Image src={project.cover} alt="" fill sizes="260px" /><span>{project.status}</span></div>
+                  <div className="project-file-preview"><Image src={project.cover} alt="" fill loading="eager" sizes="260px" /><span>{project.status}</span></div>
                   <div className="project-file-copy"><b>{project.title}</b><small>{project.eyebrow}</small></div>
                 </button>
               ))}
