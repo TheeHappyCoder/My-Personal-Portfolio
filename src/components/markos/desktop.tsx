@@ -311,7 +311,7 @@ export function PortfolioDesktop() {
 
         <aside className="desktop-tip-card">
           <div className="tip-card-user"><Image src={profilePhoto} alt="" fill sizes="44px" /></div>
-          <div><span>Hi, curious human.</span><p>Double-click a shortcut, or press <kbd>Ctrl</kbd> + <kbd>K</kbd>.</p></div>
+          <div><span>Welcome to MarkOS.</span><p>Double-click a shortcut, or press <kbd>Ctrl</kbd> + <kbd>K</kbd>.</p></div>
           <button type="button" onClick={() => openApp("terminal")} aria-label="Open Terminal"><ChevronRight size={16} /></button>
         </aside>
 
@@ -385,9 +385,9 @@ export function PortfolioDesktop() {
                     <button type="button" key={app} onClick={() => openApp(app)}><AppGlyph app={app} size={25} /><span>{APP_META[app].title.replace(" - Settings", "").replace("Mark-Steyn-CV.pdf", "Resume")}</span></button>
                   ))}
                 </div>
-                <div className="start-section-heading recommended-heading"><b>Recommended</b><span>Things worth opening</span></div>
+                <div className="start-section-heading recommended-heading"><b>Recommended</b><span>Featured and recent</span></div>
                 <div className="recommended-grid">
-                  <button type="button" onClick={() => openProject("novacore")}><span className="recommend-preview"><Image src="/novacore/1.png" alt="" fill sizes="44px" /></span><span><b>NovaCore</b><small>Flagship project</small></span></button>
+                  <button type="button" onClick={() => openProject("novacore")}><span className="recommend-preview novacore"><WindowsAsset name="projects" size={25} /></span><span><b>NovaCore</b><small>Flagship project</small></span></button>
                   <button type="button" onClick={() => openApp("resume")}><AppGlyph app="resume" size={23} /><span><b>Mark-Steyn-CV.pdf</b><small>Recently updated</small></span></button>
                 </div>
               </>

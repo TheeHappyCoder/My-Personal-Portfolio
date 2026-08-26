@@ -80,9 +80,7 @@ export const projects: Project[] = [
       "Building management systems are traditionally expensive, complex, and locked into proprietary ecosystems. Existing solutions often lack modern UX design and real-time capabilities that users expect from contemporary software.",
     solution:
       "NovaCore provides an open, modern alternative built entirely with JavaScript/TypeScript. Next.js powers both the frontend and Express-based backend, with node-bacnet and KNX libraries handling protocol communication. WebSockets enable real-time updates across all connected clients.",
-    images: Array.from({ length: 49 }, (_, i) =>
-      i === 0 ? "/novacore/bannerNova.webp" : `/novacore/${i}.png`
-    ),
+    images: [],
   },
   {
     slug: "novacloud",

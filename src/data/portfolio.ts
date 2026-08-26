@@ -1,3 +1,10 @@
+export type PortfolioTourStep = {
+  title: string;
+  description: string;
+  src: string;
+  duration: string;
+};
+
 export type PortfolioProject = {
   slug: string;
   title: string;
@@ -8,9 +15,16 @@ export type PortfolioProject = {
   problem: string;
   solution: string;
   tech: string[];
-  cover: string;
+  cover?: string;
+  coverVideo?: string;
   gallery: string[];
   galleryLabels?: string[];
+  tour?: {
+    eyebrow: string;
+    title: string;
+    intro: string;
+    steps: PortfolioTourStep[];
+  };
   accent: string;
   status: "Flagship" | "Product" | "Client work" | "Experiment";
   liveUrl?: string;
@@ -64,31 +78,37 @@ export const projects: PortfolioProject[] = [
       "M-Bus",
       "Supabase",
     ],
-    cover: "/novacore/13.png",
-    gallery: [
-      "/novacore-2026/core-automation.png",
-      "/novacore-2026/core-engineering.png",
-      "/novacore-2026/core-entities.png",
-      "/novacore-2026/core-alarms.png",
-      "/novacore-2026/core-responsive-graphic.png",
-      "/novacore-2026/core-cloud-services.png",
-      "/novacore-2026/cloud-overview.png",
-      "/novacore-2026/cloud-systems.png",
-      "/novacore/13.png",
-      "/novacore/34.png",
-    ],
-    galleryLabels: [
-      "Meaning-bound When / If / Then automation builder",
-      "Exact point selection and reviewed bulk engineering",
-      "Entity hierarchy with contextual point meanings",
-      "Immutable alarm-condition engineering",
-      "Responsive live-graphic preview across viewport presets",
-      "Local NovaCore system connected securely to NovaCloud",
-      "NovaCloud organisation overview and remote project access",
-      "Connected-system capacity and operational status",
-      "Interactive 3D building visualisation",
-      "BACnet discovery and device engineering",
-    ],
+    coverVideo: "/novacore/videos/login.mp4",
+    gallery: [],
+    tour: {
+      eyebrow: "Guided product tour",
+      title: "See NovaCore move from access to action.",
+      intro:
+        "Three focused walkthroughs show how users enter the platform, keep product knowledge close, and follow operational activity.",
+      steps: [
+        {
+          title: "Enter NovaCore",
+          description:
+            "Start at secure sign-in and follow the first path into the operating workspace.",
+          src: "/novacore/videos/login.mp4",
+          duration: "0:40",
+        },
+        {
+          title: "Keep answers in context",
+          description:
+            "Move through NovaCore documentation without breaking the product workflow.",
+          src: "/novacore/videos/docs.mp4",
+          duration: "0:12",
+        },
+        {
+          title: "Follow important activity",
+          description:
+            "See how notifications surface system activity and keep operators informed.",
+          src: "/novacore/videos/notifications.mp4",
+          duration: "0:14",
+        },
+      ],
+    },
     metrics: [
       { value: "2 apps", label: "NovaCore + NovaCloud" },
       { value: "7 sources", label: "Building and virtual drivers" },
@@ -240,12 +260,35 @@ export const projects: PortfolioProject[] = [
       "A cinematic, systems-led website connects ABT's company story, STRATOS platform, industries, and delivered building work. Searchable projects and deep product storytelling turn technical capability into visible proof.",
     tech: ["Next.js", "React", "Responsive design", "Motion design", "Video", "Performance"],
     cover: "/websites/abt-home.png",
+    coverVideo: "/abt/videos/home.mp4",
     gallery: ["/websites/abt-home.png", "/websites/abt-products.png", "/websites/abt-projects.png"],
     galleryLabels: [
       "Animated edge-to-cloud brand story",
       "STRATOS product narrative",
       "Searchable project portfolio",
     ],
+    tour: {
+      eyebrow: "Website walkthrough",
+      title: "A technical company, shown in motion.",
+      intro:
+        "Two focused walkthroughs move from ABT's cinematic company story into the product ecosystem behind its connected-building work.",
+      steps: [
+        {
+          title: "Enter the ABT story",
+          description:
+            "Follow the home experience as smart buildings, mobility, and infrastructure resolve into one connected technology narrative.",
+          src: "/abt/videos/home.mp4",
+          duration: "0:14",
+        },
+        {
+          title: "Explore the product ecosystem",
+          description:
+            "See how the STRATOS platform and ABT's operational capabilities become a clear, visual product journey.",
+          src: "/abt/videos/products.mp4",
+          duration: "0:17",
+        },
+      ],
+    },
     liveUrl: "https://abtv2.vercel.app/",
     scope: [
       {

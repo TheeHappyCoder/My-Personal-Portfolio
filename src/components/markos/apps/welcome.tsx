@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ChevronRight, Code2, FileText, FolderOpen, Mail, Sparkles, UserRound } from "lucide-react";
+import { ChevronRight, Code2, FileText, FolderOpen, Mail, Monitor, UserRound } from "lucide-react";
 import profilePhoto from "@/assets/profile/profile.jpg";
 import { profile } from "@/data/portfolio";
 import type { OpenApp } from "./types";
@@ -17,7 +17,7 @@ export function WelcomeApp({ onOpenApp }: { onOpenApp: OpenApp }) {
       </div>
 
       <div className="welcome-copy">
-        <div className="welcome-kicker"><Sparkles size={15} /> Welcome to MarkOS</div>
+        <div className="welcome-kicker"><Monitor size={15} /> Welcome to MarkOS</div>
         <h1>Software for people.<br />Systems for places.</h1>
         <p>{profile.intro}</p>
 

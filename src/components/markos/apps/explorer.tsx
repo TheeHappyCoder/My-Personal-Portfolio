@@ -1,23 +1,44 @@
 "use client";
 
-import Image from "next/image";
 import {
   Beaker,
+  BadgeCheck,
   ChevronRight,
   ExternalLink,
   FileText,
   FolderKanban,
   Search,
-  Sparkles,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { labProjects, projects } from "@/data/portfolio";
+import { labProjects, projects, type PortfolioProject } from "@/data/portfolio";
+import { ProjectMedia } from "../shared/project-media";
 import { WindowsAsset } from "../shared/windows-asset";
 import type { PortfolioAppProps } from "./types";
 
 type ShowcaseSection = "showcase" | "lab" | "documents";
 const filters = ["All", "Flagship", "Product", "Client work", "Experiment"] as const;
 type ProjectFilter = (typeof filters)[number];
+
+function ProjectCover({ project, eager = false }: { project: PortfolioProject; eager?: boolean }) {
+  const src = project.coverVideo ?? project.cover ?? project.gallery[0];
+
+  if (!src) return <span className="project-cover-empty"><WindowsAsset name="projects" size={42} /></span>;
+
+  const kind = project.coverVideo ? "video" : "image";
+  return (
+    <ProjectMedia
+      kind={kind}
+      src={src}
+      alt={`${project.title} interface preview`}
+      mode="cover"
+      sizes="(max-width: 680px) 100vw, 58vw"
+      loading={eager ? "eager" : "lazy"}
+      autoPlay={kind === "video"}
+      loop={kind === "video"}
+      decorative={kind === "video"}
+    />
+  );
+}
 
 export function ExplorerApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
   const [section, setSection] = useState<ShowcaseSection>("showcase");
@@ -53,7 +74,7 @@ export function ExplorerApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
         </nav>
 
         <div className="showcase-sidebar-note">
-          <Sparkles size={15} />
+          <BadgeCheck size={15} />
           <span><b>{projects.length} shipped projects</b><small>Products, platforms, and client work</small></span>
         </div>
       </aside>
@@ -70,14 +91,14 @@ export function ExplorerApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
           {section === "showcase" ? (
             <div className="showcase-work">
               <header className="showcase-intro">
-                <div><span>Selected work</span><h2>Built systems, shown properly.</h2><p>Production software, operational platforms, and client sites. Open any project for full-screen proof and a focused case study.</p></div>
+                <div><span>Selected work</span><h2>Systems built for real operations.</h2><p>Products, operational platforms, and client sites. Open a project for its interface, scope, and engineering decisions.</p></div>
                 <strong>{filteredProjects.length}<small>{filteredProjects.length === 1 ? "project" : "projects"}</small></strong>
               </header>
 
               {showFeatured && featured ? (
                 <article className="showcase-featured">
                   <button className="showcase-featured-media" type="button" onClick={() => onOpenProject(featured.slug)} aria-label={`Open ${featured.title} case study`}>
-                    <Image src={featured.gallery[0]} alt={`${featured.title} automation interface`} fill loading="eager" sizes="(max-width: 680px) 100vw, 58vw" />
+                    <ProjectCover project={featured} eager />
                     <span><WindowsAsset name="projects" size={18} /> Open flagship case study <ChevronRight size={15} /></span>
                   </button>
                   <div className="showcase-featured-copy">
@@ -109,7 +130,7 @@ export function ExplorerApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
                 <div className="showcase-project-grid">
                   {collectionProjects.map((project) => (
                     <button className="showcase-project-card" type="button" key={project.slug} onClick={() => onOpenProject(project.slug)}>
-                      <span className="showcase-project-image"><Image src={project.cover} alt={`${project.title} interface preview`} fill sizes="(max-width: 680px) 100vw, 36vw" /><i>{project.status}</i></span>
+                      <span className="showcase-project-image"><ProjectCover project={project} /><i>{project.status}</i></span>
                       <span className="showcase-project-copy">
                         <span><b>{project.title}</b><small>{project.year}</small></span>
                         <em>{project.eyebrow}</em>
@@ -137,7 +158,7 @@ export function ExplorerApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
                 ))}
                 <article>
                   <div className="file-type-icon"><WindowsAsset name="notepad" size={30} shortcut /></div>
-                  <div><b>more-ideas-than-weekends.txt</b><small>Text document</small><p>Prototypes, jokes, and suspiciously specific product thoughts.</p><button className="text-action" type="button" onClick={() => onOpenApp("notepad")}>Open in Notepad</button></div>
+                  <div><b>reminders.txt</b><small>Text document</small><p>Loose reminders, calculations, and unfinished notes.</p><button className="text-action" type="button" onClick={() => onOpenApp("notepad")}>Open in Notepad</button></div>
                 </article>
               </div>
             </section>

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   ArrowLeft,
   ArrowRight,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useRef, useState } from "react";
 import { projects } from "@/data/portfolio";
+import { ProjectMedia } from "../shared/project-media";
 import { WindowsAsset } from "../shared/windows-asset";
 import type { PortfolioAppProps } from "./types";
 
@@ -228,7 +228,20 @@ export function ChromeApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
 
         {activeTab.kind === "project" && project ? (
           <div className="chrome-project-page">
-            <div className="chrome-project-cover"><Image src={project.cover} alt={`${project.title} interface`} fill sizes="900px" /></div>
+            <div className="chrome-project-cover">
+              {project.coverVideo || project.cover ? (
+                <ProjectMedia
+                  kind={project.coverVideo ? "video" : "image"}
+                  src={project.coverVideo ?? project.cover ?? ""}
+                  alt={`${project.title} interface`}
+                  mode="cover"
+                  sizes="900px"
+                  autoPlay={Boolean(project.coverVideo)}
+                  loop={Boolean(project.coverVideo)}
+                  decorative={Boolean(project.coverVideo)}
+                />
+              ) : <span className="project-cover-empty"><WindowsAsset name="projects" size={48} /></span>}
+            </div>
             <div><span>{project.status}</span><h2>{project.title}</h2><p>{project.summary}</p><button type="button" onClick={() => onOpenProject(project.slug)}>Open full case study <ExternalLink size={14} /></button></div>
           </div>
         ) : null}

@@ -9,7 +9,6 @@ type PhotoItem = { src: string | StaticImageData; label: string; category: strin
 
 const photos: PhotoItem[] = [
   { src: profilePhoto, label: "Mark, currently not debugging", category: "People" },
-  { src: "/novacore-2026/core-automation.png", label: "NovaCore automation builder", category: "Work" },
   { src: "/practly/overview.png", label: "Practly practice operations", category: "Work" },
   { src: "/lawFirm/1.webp", label: "Legal operations dashboard", category: "Work" },
   { src: "/droplet/2.png", label: "Droplet local hand-off", category: "Experiments" },
@@ -26,7 +25,7 @@ export function PhotosApp() {
       <header><div><span>Collection</span><h2>Portfolio memories</h2></div><button type="button" aria-label="Photo options"><MoreHorizontal size={18} /></button></header>
       <div className="photo-grid">
         {photos.map((photo, index) => (
-          <button type="button" key={`${photo.label}-${index}`} onClick={() => setSelected(photo)} className={index === 0 ? "portrait" : index === 1 || index === 5 ? "wide" : ""}>
+          <button type="button" key={`${photo.label}-${index}`} onClick={() => setSelected(photo)} className={index === 0 ? "portrait" : index === 1 || index === 4 ? "wide" : ""}>
             <Image src={photo.src} alt={photo.label} fill sizes="(max-width: 700px) 50vw, 280px" />
             <span>{photo.category}</span>
           </button>

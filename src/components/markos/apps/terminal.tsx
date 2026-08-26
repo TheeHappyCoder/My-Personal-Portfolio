@@ -19,7 +19,11 @@ const tree = `.
 ├── skills.json
 ├── experience.log
 ├── notes/
-│   └── .private-do-not-open.txt
+│   ├── reminders.txt
+│   ├── work.txt
+│   ├── numbers.txt
+│   ├── shopping.txt
+│   └── later.txt
 └── contact.vcf`;
 
 const appAliases: Record<string, AppId> = {
@@ -111,7 +115,7 @@ export function TerminalApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
 
     if (base === "ls") {
       if (arg.includes("work")) addOutput(clean, projects.map((project) => `${project.slug}/`).join("  "));
-      else if (arg.includes("notes")) addOutput(clean, "reminders.txt  do-not-open.txt  things-that-took-20-minutes.txt");
+      else if (arg.includes("notes")) addOutput(clean, "reminders.txt  work.txt  numbers.txt  shopping.txt  later.txt");
       else addOutput(clean, "about.md  work/  skills.json  experience.log  notes/  contact.vcf");
       return;
     }
@@ -121,7 +125,7 @@ export function TerminalApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
       else if (arg.includes("skills")) addOutput(clean, JSON.stringify(Object.fromEntries(skillGroups.map((group) => [group.title, group.skills])), null, 2));
       else if (arg.includes("experience")) addOutput(clean, experience.map((item) => `${item.period} | ${item.role} @ ${item.company}`).join("\n"));
       else if (arg.includes("contact")) addOutput(clean, `EMAIL=${profile.email}\nLINKEDIN=${profile.linkedin}`);
-      else if (arg.includes("private") || arg.includes("do-not-open")) addOutput(clean, "Nice try. Open Notepad like a normal snoop.");
+      else if (["reminders", "work.txt", "numbers", "shopping", "later"].some((note) => arg.includes(note))) addOutput(clean, "Open Notepad to edit this file.");
       else addOutput(clean, `cat: ${arg || "missing operand"}: No such file. Try 'ls'.`, "error");
       return;
     }

@@ -45,7 +45,7 @@ const themeOptions: Array<{ id: ThemeMode; label: string; description: string; i
 ];
 
 const fontOptions: Array<{ id: FontFamily; label: string; description: string; sample: string }> = [
-  { id: "segoe", label: "Segoe UI", description: "Familiar and neutral", sample: "Aa" },
+  { id: "jakarta", label: "Plus Jakarta Sans", description: "Refined and modern", sample: "Aa" },
   { id: "humanist", label: "Humanist", description: "Warm and open", sample: "Ag" },
   { id: "serif", label: "Editorial", description: "Classic serif", sample: "Aa" },
   { id: "mono", label: "Monospace", description: "Technical and precise", sample: "01" },

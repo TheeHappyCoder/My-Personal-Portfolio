@@ -1,7 +1,7 @@
 export const APPEARANCE_STORAGE_KEY = "markos.appearance.v1";
 
 export const themeModes = ["light", "dark", "system"] as const;
-export const fontFamilies = ["segoe", "humanist", "serif", "mono"] as const;
+export const fontFamilies = ["jakarta", "humanist", "serif", "mono"] as const;
 export const textSizes = ["small", "default", "large", "xlarge"] as const;
 export const wallpapers = ["bloom", "aurora", "dusk", "graphite"] as const;
 export const accentColors = ["blue", "violet", "emerald", "rose"] as const;
@@ -24,7 +24,7 @@ export type AppearancePreferences = {
 
 export const defaultAppearancePreferences: AppearancePreferences = {
   theme: "light",
-  font: "segoe",
+  font: "jakarta",
   textSize: "default",
   wallpaper: "bloom",
   accent: "blue",
@@ -88,7 +88,7 @@ export const appearanceBootstrapScript = `
       : themeMode;
     root.dataset.theme = theme;
     root.dataset.themeMode = themeMode;
-    root.dataset.font = fontFamilies.indexOf(value.font) > -1 ? value.font : "segoe";
+    root.dataset.font = fontFamilies.indexOf(value.font) > -1 ? value.font : "jakarta";
     root.dataset.textSize = textSizes.indexOf(value.textSize) > -1 ? value.textSize : "default";
     root.dataset.wallpaper = wallpapers.indexOf(value.wallpaper) > -1 ? value.wallpaper : "bloom";
     root.dataset.accent = accentColors.indexOf(value.accent) > -1 ? value.accent : "blue";

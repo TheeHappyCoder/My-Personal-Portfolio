@@ -4,60 +4,61 @@ import { FileText, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const originalNotes: Record<string, string> = {
-  "reminders.txt": `REMINDERS — extremely normal and professional
+  "reminders.txt": `dentist thurs 10:30
+reply to liam
+take charger
+move car before 8
+buy coffee
+call mom
+passport expiry??
 
-□ Reply to recruiter while "soon" still means soon.
-□ Replace profile photo. This one is fine. Stop overthinking it.
-□ Book dentist appointment. "After launch" was three launches ago.
-□ Do not begin another side project after 11 p.m.
-□ If the demo works first time, DO NOT TOUCH IT.
-□ Buy coffee.
+1 + 3 = 4
 
-Important:
-The 1px alignment issue is visible to no one.
-Fix it anyway.`,
-  "things-that-took-20-minutes.txt": `Things I confidently said would take 20 minutes:
+blue cable is the good one`,
+  "work.txt": `before demo
 
-1. "Just wire up the API."
-2. "Just one responsive breakpoint."
-3. "Just clean up the old building data."
-4. "Just make the window draggable."
-5. "Just center the Start menu."
+restart api
+sample building 3
+close downloads
+mute teams
+hotspot if wifi is weird
 
-Current combined duration: legally classified as a quarter.`,
-  "do-not-open.txt": `Okay, since you're here:
+check 375px
+empty state still jumps
+dates on cv
 
-- I still google the exact flexbox syntax.
-- I practise important introductions in the car.
-- I have renamed final-final-v3 twice.
-- A green build genuinely improves my mood.
-- Sometimes I open DevTools on sites I like just to look around.
+send build before 2`,
+  "numbers.txt": `450 + 180 = 630
+630 / 3 = 210
 
-Please close this tab before the professional version of me notices.`,
-  "interview-cheat-sheet.txt": `INTERVIEW NOTES (not nervous, merely prepared)
+12% of 480 = 57.6
 
-Remember:
-- Slow down.
-- Ask what success looks like after six months.
-- Give the short answer before the architecture documentary.
-- "It depends" requires an explanation.
-- Do not call every interesting problem "fun".
-- Their name is at the top of the call. Use it.
+14:30
+09:15 friday
+28 / 4 = 7
 
-Emergency closer:
-"What would make someone exceptional in this role?"`,
-  ".side-projects-i-am-not-starting.txt": `Projects I am absolutely not starting this weekend:
+1 + 3 = 4`,
+  "shopping.txt": `milk
+coffee
+dish soap
+bin bags
+bread
+small batteries
+toothpaste
 
-- Building dashboard for houseplants
-- Git blame, but emotionally supportive
-- BACnet-powered coffee machine
-- Calendar that simply says "no"
-- Another portfolio operating system
+check if we still have rice`,
+  "later.txt": `backup laptop
+rename photos
+fix desk drawer
+domain renewal
+read bacnet notes again
+sort cables
 
-Update: one of these appears to have escaped containment.`,
+ask about floor 2 controller
+check logs first`,
 };
 
-const storageKey = "markos-private-notes";
+const storageKey = "markos-private-notes-v2";
 
 export function NotepadApp() {
   const [notes, setNotes] = useState(originalNotes);
@@ -124,7 +125,7 @@ export function NotepadApp() {
           <button type="button" onClick={(event) => { event.stopPropagation(); setMenu(menu === "view" ? null : "view"); }}>View</button>
           {menu ? (
             <div className="notepad-dropdown" onClick={(event) => event.stopPropagation()}>
-              {menu === "file" ? <><button type="button" onClick={addNote}><span>New tab</span><kbd>Ctrl+N</kbd></button><button type="button" onClick={() => setMenu(null)}><span>Save</span><kbd>Ctrl+S</kbd></button><hr /><button type="button" onClick={resetNotes}><span>Restore original evidence</span></button></> : null}
+              {menu === "file" ? <><button type="button" onClick={addNote}><span>New tab</span><kbd>Ctrl+N</kbd></button><button type="button" onClick={() => setMenu(null)}><span>Save</span><kbd>Ctrl+S</kbd></button><hr /><button type="button" onClick={resetNotes}><span>Restore original notes</span></button></> : null}
               {menu === "edit" ? <><button type="button" onClick={() => { textAreaRef.current?.select(); setMenu(null); }}><span>Select all</span><kbd>Ctrl+A</kbd></button><button type="button" onClick={() => setMenu(null)}><span>Find</span><kbd>Ctrl+F</kbd></button></> : null}
               {menu === "view" ? <><button type="button" onClick={() => setMenu(null)}><span>Zoom</span><kbd>100%</kbd></button><button type="button" onClick={() => setMenu(null)}><span>Status bar</span><kbd>✓</kbd></button></> : null}
             </div>
