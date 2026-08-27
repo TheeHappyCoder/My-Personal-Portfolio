@@ -1,183 +1,104 @@
 "use client";
 
 import {
-  ArrowUp,
   BriefcaseBusiness,
-  Check,
   ChevronDown,
   FileText,
-  FolderKanban,
-  Mic,
-  Plus,
+  Mail,
+  Sparkles,
   UserRound,
-  X,
-  type LucideIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import type { PromptIdea } from "./types";
 
 type PromptComposerProps = {
-  value: string;
+  options: PromptIdea[];
   disabled: boolean;
-  onChange: (value: string) => void;
-  onSend: (value: string) => void;
+  onSelect: (question: string, label: string) => void;
 };
 
-type SourceOption = {
-  label: string;
-  detail: string;
-  icon: LucideIcon;
-};
+function PromptIcon({ name }: { name: PromptIdea["icon"] }) {
+  if (name === "contact") return <Mail size={14} />;
+  if (name === "fit") return <UserRound size={14} />;
+  if (name === "story") return <FileText size={14} />;
+  return <BriefcaseBusiness size={14} />;
+}
 
-const sourceOptions: SourceOption[] = [
-  { label: "Projects", detail: "7 shipped case studies", icon: FolderKanban },
-  { label: "Experience", detail: "Roles and responsibilities", icon: BriefcaseBusiness },
-  { label: "Resume", detail: "One-page career summary", icon: FileText },
-  { label: "About Mark", detail: "Working style and background", icon: UserRound },
-];
-
-const modes = [
-  { name: "Portfolio index", detail: "Balanced answers" },
-  { name: "Recruiter brief", detail: "Short and direct" },
-  { name: "Technical detail", detail: "Architecture first" },
-];
-
-/** Composer, context menu, model picker, and dictation adapted from Beautiful UI's Prompt Bar (MIT). */
-export function PromptComposer({ value, disabled, onChange, onSend }: PromptComposerProps) {
-  const [menu, setMenu] = useState<"sources" | "mode" | null>(null);
-  const [selectedSources, setSelectedSources] = useState<string[]>([]);
-  const [mode, setMode] = useState(modes[0]);
-  const [listening, setListening] = useState(false);
-  const rootRef = useRef<HTMLFormElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+/** Preset-only question dock. No fake freeform input or controls that cannot work. */
+export function PromptComposer({ options, disabled, onSelect }: PromptComposerProps) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!menu) return;
-    const close = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setMenu(null);
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
-  }, [menu]);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
-  useEffect(() => {
-    if (!listening) return;
-    const timer = window.setTimeout(() => {
-      onChange("What makes Mark different from other product engineers?");
-      setListening(false);
-      inputRef.current?.focus();
-    }, 1050);
-    return () => window.clearTimeout(timer);
-  }, [listening, onChange]);
-
-  useEffect(() => {
-    const input = inputRef.current;
-    if (!input) return;
-    input.style.height = "0px";
-    input.style.height = `${Math.min(Math.max(input.scrollHeight, 24), 96)}px`;
-  }, [value]);
-
-  const toggleSource = (label: string) => {
-    setSelectedSources((current) => current.includes(label) ? current.filter((item) => item !== label) : [...current, label]);
-  };
-
-  const send = () => {
-    const clean = value.trim();
-    if (!clean || disabled) return;
-    onSend(clean);
-    setSelectedSources([]);
-    setMenu(null);
+  const choose = (option: PromptIdea) => {
+    setOpen(false);
+    onSelect(option.question, option.label);
   };
 
   return (
     <div className="markgpt-composer-wrap">
-      <form
-        ref={rootRef}
-        className="markgpt-composer"
-        onSubmit={(event) => {
-          event.preventDefault();
-          send();
-        }}
-      >
+      <div ref={rootRef} className="markgpt-question-dock">
+        <div className="markgpt-question-dock-label">
+          <span aria-hidden="true"><Sparkles size={14} /></span>
+          <div><b>Ask next</b><small>Choose a question</small></div>
+        </div>
+
+        <div className="markgpt-question-shortcuts">
+          {options.slice(0, 3).map((option) => (
+            <button type="button" key={option.question} disabled={disabled} onClick={() => choose(option)} title={option.question}>
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className="markgpt-question-more"
+          disabled={disabled}
+          aria-expanded={open}
+          aria-haspopup="menu"
+          onClick={() => setOpen((current) => !current)}
+        >
+          More <ChevronDown size={12} style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+        </button>
+
         <AnimatePresence>
-          {menu === "sources" ? (
+          {open ? (
             <motion.div
-              className="markgpt-composer-menu markgpt-source-menu"
-              initial={{ opacity: 0, y: 6, scale: 0.98 }}
+              className="markgpt-question-menu"
+              role="menu"
+              initial={{ opacity: 0, y: 5, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 4, scale: 0.985 }}
+              exit={{ opacity: 0, y: 4, scale: 0.985, transition: { duration: 0.1 } }}
               transition={{ type: "spring", stiffness: 550, damping: 38 }}
             >
-              <header><b>Add portfolio context</b><small>Answers still stay local.</small></header>
-              {sourceOptions.map((source) => {
-                const Icon = source.icon;
-                const selected = selectedSources.includes(source.label);
-                return (
-                  <button type="button" key={source.label} onClick={() => toggleSource(source.label)}>
-                    <span><Icon size={15} /></span>
-                    <span><b>{source.label}</b><small>{source.detail}</small></span>
-                    {selected ? <Check size={14} /> : null}
-                  </button>
-                );
-              })}
-            </motion.div>
-          ) : null}
-          {menu === "mode" ? (
-            <motion.div
-              className="markgpt-composer-menu markgpt-mode-menu"
-              initial={{ opacity: 0, y: 6, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 4, scale: 0.985 }}
-              transition={{ type: "spring", stiffness: 550, damping: 38 }}
-            >
-              {modes.map((item) => (
-                <button type="button" key={item.name} onClick={() => { setMode(item); setMenu(null); }}>
-                  <span><b>{item.name}</b><small>{item.detail}</small></span>
-                  {mode.name === item.name ? <Check size={14} /> : null}
+              <header><b>Choose a question</b><small>Answers use portfolio content only.</small></header>
+              {options.map((option) => (
+                <button type="button" role="menuitem" key={option.question} onClick={() => choose(option)}>
+                  <span><PromptIcon name={option.icon} /></span>
+                  <span><b>{option.question}</b><small>{option.label}</small></span>
                 </button>
               ))}
             </motion.div>
           ) : null}
         </AnimatePresence>
-
-        {selectedSources.length > 0 ? (
-          <div className="markgpt-selected-sources">
-            {selectedSources.map((source) => (
-              <span key={source}><FileText size={11} /> {source}<button type="button" onClick={() => toggleSource(source)} aria-label={`Remove ${source}`}><X size={10} /></button></span>
-            ))}
-          </div>
-        ) : null}
-
-        <textarea
-          ref={inputRef}
-          rows={1}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-              event.preventDefault();
-              send();
-            }
-            if (event.key === "Escape") setMenu(null);
-          }}
-          placeholder={listening ? "Listening…" : "Ask about Mark, the work, or technical decisions…"}
-          aria-label="Message MarkGPT"
-        />
-
-        <footer>
-          <div>
-            <button type="button" className={menu === "sources" ? "is-active" : ""} onClick={() => setMenu((current) => current === "sources" ? null : "sources")} aria-label="Add portfolio sources" aria-expanded={menu === "sources"}><Plus size={16} /></button>
-            <button type="button" className="markgpt-mode-trigger" onClick={() => setMenu((current) => current === "mode" ? null : "mode")} aria-expanded={menu === "mode"}>{mode.name}<ChevronDown size={12} /></button>
-          </div>
-          <div>
-            <button type="button" className={listening ? "is-listening" : ""} onClick={() => setListening((current) => !current)} aria-label={listening ? "Stop dictation" : "Start dictation"} aria-pressed={listening}>
-              {listening ? <span className="markgpt-equalizer"><i /><i /><i /></span> : <Mic size={15} />}
-            </button>
-            <button type="submit" className="markgpt-send" aria-label="Send prompt" disabled={!value.trim() || disabled}><ArrowUp size={16} /></button>
-          </div>
-        </footer>
-      </form>
-      <small className="markgpt-composer-note">Portfolio answers only. No cloud account, no invented experience.</small>
+      </div>
     </div>
   );
 }

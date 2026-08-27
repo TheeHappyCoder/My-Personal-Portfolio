@@ -5,6 +5,7 @@ export type AppId =
   | "settings"
   | "skills"
   | "photos"
+  | "arcade"
   | "notepad"
   | "browser"
   | "chat"

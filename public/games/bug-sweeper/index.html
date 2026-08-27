@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bug Sweeper</title>
+  <style>
+    :root { --ink:#292929; --stage:#f6f6f6; --card:#fff; --border:color-mix(in srgb,var(--ink) 12%,transparent); --muted:#6d6d6d; --primary:#305dde; --shadow:0 1px 2px rgba(0,0,0,.06); }
+    * { box-sizing: border-box; }
+    html, body { width:100%; min-height:100%; margin:0; }
+    body { padding:clamp(14px,3.4vw,30px); background:var(--stage); color:var(--ink); font-family:"Segoe UI",Inter,system-ui,sans-serif; -webkit-font-smoothing:antialiased; display:grid; place-items:center; }
+    button { color:inherit; font:inherit; }
+    button:focus-visible { outline:3px solid color-mix(in srgb,#3ba6f1 50%,transparent); outline-offset:2px; }
+    .game { width:min(790px,100%); display:grid; grid-template-columns:minmax(190px,240px) minmax(300px,420px); gap:clamp(24px,6vw,62px); align-items:center; }
+    .intro { align-self:stretch; padding:6px 0; display:flex; flex-direction:column; justify-content:center; }
+    .eyebrow { color:var(--primary); font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
+    h1 { margin:7px 0 8px; font-size:clamp(30px,5vw,46px); font-weight:500; letter-spacing:-.055em; line-height:.95; }
+    .intro > p { margin:0; color:var(--muted); font-size:13px; line-height:1.5; }
+    .metrics { margin-top:22px; display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .metric { min-height:62px; padding:10px 12px; border:1px solid var(--border); border-radius:14px; background:var(--card); box-shadow:var(--shadow); display:grid; align-content:center; }
+    .metric small { color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.06em; }
+    .metric strong { margin-top:2px; font-size:19px; font-weight:500; font-variant-numeric:tabular-nums; }
+    .status { min-height:38px; margin:8px 0 0; color:var(--muted); font-size:11px; line-height:1.4; }
+    .actions { margin-top:auto; padding-top:18px; }
+    .actions button { min-height:34px; padding:0 13px; border:0; border-radius:8px; background:#e9e9e9; font-size:12px; font-weight:500; transition:background .16s ease,transform .1s ease; }
+    .actions button:hover { background:color-mix(in srgb,#e9e9e9 94%,var(--ink)); }
+    .actions button:active { transform:translateY(1px) scale(.98); }
+    .board-shell { padding:5px; border:1px solid var(--border); border-radius:24px; background:var(--card); box-shadow:var(--shadow); }
+    .board { aspect-ratio:1; padding:clamp(6px,1.2vw,9px); border:1px solid var(--border); border-radius:20px; background:color-mix(in srgb,var(--ink) 8%,var(--stage)); display:grid; grid-template-columns:repeat(9,1fr); gap:3px; touch-action:manipulation; }
+    .cell { min-width:0; aspect-ratio:1; padding:0; border:1px solid var(--border); border-radius:clamp(3px,.7vw,6px); background:var(--card); color:var(--ink); display:grid; place-items:center; font-size:clamp(10px,2vw,16px); font-weight:500; font-variant-numeric:tabular-nums; box-shadow:var(--shadow); transition:background .12s ease; }
+    .cell:hover:not(.revealed) { background:color-mix(in srgb,var(--ink) 5%,var(--card)); }
+    .cell:active:not(.revealed) { background:color-mix(in srgb,var(--ink) 9%,var(--card)); }
+    .cell.revealed { border-color:transparent; background:transparent; box-shadow:none; }
+    .cell.flagged { background:var(--ink); color:var(--card); }
+    .cell.bug { background:var(--ink); color:var(--card); }
+    .cell.hit { background:var(--primary); color:white; }
+    .cell[data-count="1"] { color:var(--primary); }
+    .cell[data-count="2"] { color:#087b5b; }
+    .cell[data-count="3"], .cell[data-count="4"], .cell[data-count="5"] { color:#a13b55; }
+    @media (max-width:640px) {
+      body { display:block; padding:12px; }
+      .game { max-width:430px; margin:0 auto; grid-template-columns:1fr; gap:13px; }
+      .intro { display:grid; grid-template-columns:1fr auto; align-items:end; gap:6px 14px; }
+      .intro > p { grid-column:1/-1; }
+      .metrics { grid-column:1/-1; margin-top:8px; }
+      .status { grid-column:1; min-height:0; margin:2px 0 0; }
+      .actions { grid-column:2; grid-row:3; padding-top:0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <section class="intro">
+      <div><span class="eyebrow">Quality assurance</span><h1>Bug<br />Sweeper</h1></div>
+      <p>Inspect safe files. Flag every production bug before release.</p>
+      <div class="metrics">
+        <div class="metric"><small>Bugs left</small><strong id="flags">10</strong></div>
+        <div class="metric"><small>Elapsed</small><strong id="time">0:00</strong></div>
+      </div>
+      <p class="status" id="status" role="status">Click to inspect. Right-click or hold to flag.</p>
+      <div class="actions"><button id="restart" type="button">New audit</button></div>
+    </section>
+    <div class="board-shell"><div class="board" id="board" role="grid" aria-label="Bug Sweeper board"></div></div>
+  </main>
+
+  <script>
+    (() => {
+      const width = 9;
+      const bugCount = 10;
+      const total = width * width;
+      const board = document.querySelector("#board");
+      const flagsNode = document.querySelector("#flags");
+      const timeNode = document.querySelector("#time");
+      const statusNode = document.querySelector("#status");
+      const restartButton = document.querySelector("#restart");
+      let mines = new Set();
+      let revealed = new Set();
+      let flagged = new Set();
+      let firstMove = true;
+      let ended = false;
+      let startedAt = 0;
+      let timer = null;
+      let holdTimer = null;
+      let heldIndex = -1;
+      let ignoreClick = false;
+
+      function neighbors(index) {
+        const row = Math.floor(index / width);
+        const column = index % width;
+        const result = [];
+        for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
+          for (let columnOffset = -1; columnOffset <= 1; columnOffset += 1) {
+            if (!rowOffset && !columnOffset) continue;
+            const nextRow = row + rowOffset;
+            const nextColumn = column + columnOffset;
+            if (nextRow >= 0 && nextRow < width && nextColumn >= 0 && nextColumn < width) result.push(nextRow * width + nextColumn);
+          }
+        }
+        return result;
+      }
+
+      function placeBugs(firstIndex) {
+        const blocked = new Set([firstIndex, ...neighbors(firstIndex)]);
+        const choices = Array.from({ length: total }, (_, index) => index).filter((index) => !blocked.has(index));
+        while (mines.size < bugCount) {
+          const choice = choices[Math.floor(Math.random() * choices.length)];
+          mines.add(choice);
+        }
+      }
+
+      function countAround(index) {
+        return neighbors(index).filter((neighbor) => mines.has(neighbor)).length;
+      }
+
+      function formatTime(seconds) {
+        return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+      }
+
+      function startTimer() {
+        if (timer) return;
+        startedAt = Date.now();
+        timer = window.setInterval(() => {
+          timeNode.textContent = formatTime(Math.floor((Date.now() - startedAt) / 1000));
+        }, 250);
+      }
+
+      function stopTimer() {
+        if (timer) window.clearInterval(timer);
+        timer = null;
+      }
+
+      function render() {
+        board.replaceChildren();
+        for (let index = 0; index < total; index += 1) {
+          const cell = document.createElement("button");
+          const isRevealed = revealed.has(index);
+          const isFlagged = flagged.has(index);
+          const isBug = mines.has(index);
+          const count = isRevealed && !isBug ? countAround(index) : 0;
+          cell.type = "button";
+          cell.className = `cell${isRevealed ? " revealed" : ""}${isFlagged ? " flagged" : ""}${ended && isBug ? " bug" : ""}${ended && isBug && isRevealed ? " hit" : ""}`;
+          cell.dataset.index = String(index);
+          if (count) cell.dataset.count = String(count);
+          cell.textContent = isFlagged && !isRevealed ? "⚑" : ended && isBug ? "🐛" : count ? String(count) : "";
+          cell.setAttribute("role", "gridcell");
+          cell.setAttribute("aria-label", isFlagged ? "Flagged file" : isRevealed ? (isBug ? "Production bug" : count ? `${count} nearby bugs` : "Safe file") : "Unchecked file");
+          board.append(cell);
+        }
+        flagsNode.textContent = String(Math.max(0, bugCount - flagged.size));
+      }
+
+      function reveal(index) {
+        if (ended || revealed.has(index) || flagged.has(index)) return;
+        if (firstMove) {
+          firstMove = false;
+          placeBugs(index);
+          startTimer();
+        }
+        if (mines.has(index)) {
+          revealed.add(index);
+          ended = true;
+          stopTimer();
+          statusNode.textContent = "Production bug shipped. Audit failed safely.";
+          render();
+          return;
+        }
+
+        const queue = [index];
+        while (queue.length) {
+          const current = queue.shift();
+          if (current === undefined || revealed.has(current) || flagged.has(current)) continue;
+          revealed.add(current);
+          if (countAround(current) === 0) neighbors(current).forEach((neighbor) => { if (!revealed.has(neighbor) && !mines.has(neighbor)) queue.push(neighbor); });
+        }
+
+        if (revealed.size === total - bugCount) {
+          ended = true;
+          stopTimer();
+          statusNode.textContent = "Audit clean. Somehow no Friday rollback.";
+        }
+        render();
+      }
+
+      function toggleFlag(index) {
+        if (ended || revealed.has(index)) return;
+        if (flagged.has(index)) flagged.delete(index);
+        else if (flagged.size < bugCount) flagged.add(index);
+        render();
+      }
+
+      function reset() {
+        stopTimer();
+        mines = new Set();
+        revealed = new Set();
+        flagged = new Set();
+        firstMove = true;
+        ended = false;
+        timeNode.textContent = "0:00";
+        statusNode.textContent = "Click to inspect. Right-click or hold to flag.";
+        render();
+      }
+
+      board.addEventListener("click", (event) => {
+        const cell = event.target.closest(".cell");
+        if (!cell) return;
+        if (ignoreClick) { ignoreClick = false; return; }
+        reveal(Number(cell.dataset.index));
+      });
+      board.addEventListener("contextmenu", (event) => {
+        const cell = event.target.closest(".cell");
+        if (!cell) return;
+        event.preventDefault();
+        toggleFlag(Number(cell.dataset.index));
+      });
+      board.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse") return;
+        const cell = event.target.closest(".cell");
+        if (!cell) return;
+        heldIndex = Number(cell.dataset.index);
+        holdTimer = window.setTimeout(() => {
+          toggleFlag(heldIndex);
+          ignoreClick = true;
+          holdTimer = null;
+        }, 460);
+      });
+      ["pointerup", "pointercancel", "pointermove"].forEach((name) => board.addEventListener(name, () => {
+        if (holdTimer) window.clearTimeout(holdTimer);
+        holdTimer = null;
+      }));
+      restartButton.addEventListener("click", reset);
+      reset();
+    })();
+  </script>
+</body>
+</html>

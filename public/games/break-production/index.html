@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Break Production</title>
+  <style>
+    :root { --ink:#292929; --stage:#f6f6f6; --card:#fff; --border:color-mix(in srgb,var(--ink) 12%,transparent); --muted:#6d6d6d; --primary:#305dde; --shadow:0 1px 2px rgba(0,0,0,.06); }
+    * { box-sizing:border-box; }
+    html,body { width:100%; min-height:100%; margin:0; }
+    body { padding:clamp(14px,3.3vw,30px); background:var(--stage); color:var(--ink); font-family:"Segoe UI",Inter,system-ui,sans-serif; -webkit-font-smoothing:antialiased; display:grid; place-items:center; }
+    button { color:inherit; font:inherit; }
+    button:focus-visible,canvas:focus-visible { outline:3px solid color-mix(in srgb,#3ba6f1 50%,transparent); outline-offset:2px; }
+    .game { width:min(860px,100%); display:grid; grid-template-columns:minmax(190px,230px) minmax(390px,600px); gap:clamp(22px,5vw,54px); align-items:center; }
+    .intro { align-self:stretch; padding:6px 0; display:flex; flex-direction:column; justify-content:center; }
+    .eyebrow { color:var(--primary); font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
+    h1 { margin:7px 0 8px; font-size:clamp(30px,5vw,46px); font-weight:500; letter-spacing:-.055em; line-height:.95; }
+    .intro>p { margin:0; color:var(--muted); font-size:13px; line-height:1.5; }
+    .metrics { margin-top:22px; display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .metric { min-height:62px; padding:10px 12px; border:1px solid var(--border); border-radius:14px; background:var(--card); box-shadow:var(--shadow); display:grid; align-content:center; }
+    .metric small { color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.06em; }
+    .metric strong { margin-top:2px; font-size:19px; font-weight:500; font-variant-numeric:tabular-nums; }
+    .status { min-height:38px; margin:8px 0 0; color:var(--muted); font-size:11px; line-height:1.4; }
+    .actions { margin-top:auto; padding-top:18px; }
+    .actions button { min-height:34px; padding:0 13px; border:0; border-radius:8px; background:#e9e9e9; font-size:12px; font-weight:500; transition:background .16s ease,transform .1s ease; }
+    .actions button:hover { background:color-mix(in srgb,#e9e9e9 94%,var(--ink)); }
+    .actions button:active { transform:translateY(1px) scale(.98); }
+    .canvas-shell { padding:5px; border:1px solid var(--border); border-radius:24px; background:var(--card); box-shadow:var(--shadow); }
+    canvas { width:100%; height:auto; aspect-ratio:640/420; border:1px solid var(--border); border-radius:20px; background:var(--stage); display:block; touch-action:none; }
+    @media (max-width:700px) {
+      body { display:block; padding:12px; }
+      .game { max-width:620px; margin:0 auto; grid-template-columns:1fr; gap:13px; }
+      .intro { display:grid; grid-template-columns:1fr auto; align-items:end; gap:6px 14px; }
+      .intro>p { grid-column:1/-1; }
+      .metrics { grid-column:1/-1; margin-top:8px; }
+      .status { grid-column:1; min-height:0; margin:2px 0 0; }
+      .actions { grid-column:2; grid-row:3; padding-top:0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <section class="intro">
+      <div><span class="eyebrow">Release engineering</span><h1>Break<br />Production</h1></div>
+      <p>Clear every failing check. Protect launch with suspiciously simple physics.</p>
+      <div class="metrics">
+        <div class="metric"><small>Checks cleared</small><strong id="score">0 / 40</strong></div>
+        <div class="metric"><small>Retries</small><strong id="lives">3</strong></div>
+      </div>
+      <p class="status" id="status" role="status">Press Space or tap the board to deploy.</p>
+      <div class="actions"><button id="restart" type="button">Reset pipeline</button></div>
+    </section>
+    <div class="canvas-shell"><canvas id="game" width="640" height="420" tabindex="0" aria-label="Break Production game board"></canvas></div>
+  </main>
+
+  <script>
+    (() => {
+      const canvas = document.querySelector("#game");
+      const context = canvas.getContext("2d");
+      const scoreNode = document.querySelector("#score");
+      const livesNode = document.querySelector("#lives");
+      const statusNode = document.querySelector("#status");
+      const restartButton = document.querySelector("#restart");
+      const width = 640;
+      const height = 420;
+      const columns = 8;
+      const rows = 5;
+      const labels = ["lint", "types", "unit", "e2e", "a11y", "build", "review", "ship"];
+      const pressed = { left:false, right:false };
+      let bricks = [];
+      let paddle;
+      let ball;
+      let lives;
+      let score;
+      let running;
+      let ended;
+      let frame;
+      let lastTime;
+
+      function createBricks() {
+        bricks = [];
+        const gap = 7;
+        const brickWidth = (width - 70 - gap * (columns - 1)) / columns;
+        for (let row = 0; row < rows; row += 1) {
+          for (let column = 0; column < columns; column += 1) {
+            bricks.push({ x:35 + column * (brickWidth + gap), y:40 + row * 31, width:brickWidth, height:23, live:true, label:labels[column] });
+          }
+        }
+      }
+
+      function resetBall() {
+        paddle = { x:width / 2 - 54, y:height - 32, width:108, height:9 };
+        ball = { x:width / 2, y:height - 50, radius:7, dx:(Math.random() > .5 ? 1 : -1) * 185, dy:-235 };
+        running = false;
+      }
+
+      function reset() {
+        window.cancelAnimationFrame(frame);
+        createBricks();
+        lives = 3;
+        score = 0;
+        ended = false;
+        resetBall();
+        statusNode.textContent = "Press Space or tap the board to deploy.";
+        updateMetrics();
+        draw();
+        canvas.focus();
+      }
+
+      function updateMetrics() {
+        scoreNode.textContent = `${score} / ${rows * columns}`;
+        livesNode.textContent = String(lives);
+      }
+
+      function start() {
+        if (ended || running) return;
+        running = true;
+        statusNode.textContent = "Pipeline running. Arrow keys, pointer, or touch move paddle.";
+        lastTime = performance.now();
+        frame = window.requestAnimationFrame(loop);
+      }
+
+      function roundedRect(x,y,w,h,r) {
+        context.beginPath();
+        context.roundRect(x,y,w,h,r);
+      }
+
+      function draw() {
+        context.clearRect(0,0,width,height);
+        context.fillStyle = "#f6f6f6";
+        context.fillRect(0,0,width,height);
+        context.strokeStyle = "rgba(41,41,41,.07)";
+        context.lineWidth = 1;
+        for (let x = 20; x < width; x += 40) { context.beginPath(); context.moveTo(x,0); context.lineTo(x,height); context.stroke(); }
+        for (let y = 20; y < height; y += 40) { context.beginPath(); context.moveTo(0,y); context.lineTo(width,y); context.stroke(); }
+
+        bricks.forEach((brick,index) => {
+          if (!brick.live) return;
+          roundedRect(brick.x,brick.y,brick.width,brick.height,6);
+          const emphasis = (index + Math.floor(index / columns)) % 5 === 0;
+          context.fillStyle = emphasis ? "#292929" : "#fff";
+          context.fill();
+          context.strokeStyle = "rgba(41,41,41,.14)";
+          context.stroke();
+          context.fillStyle = emphasis ? "#fff" : "#6d6d6d";
+          context.font = "10px ui-monospace, SFMono-Regular, Consolas, monospace";
+          context.textAlign = "center";
+          context.textBaseline = "middle";
+          context.fillText(brick.label,brick.x + brick.width/2,brick.y + brick.height/2 + .5);
+        });
+
+        roundedRect(paddle.x,paddle.y,paddle.width,paddle.height,5);
+        context.fillStyle = "#292929";
+        context.fill();
+        context.beginPath();
+        context.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);
+        context.fillStyle = "#305dde";
+        context.fill();
+
+        if (!running) {
+          context.fillStyle = "rgba(246,246,246,.76)";
+          context.fillRect(0,0,width,height);
+          roundedRect(width/2-112,height/2-26,224,52,13);
+          context.fillStyle = "#fff";
+          context.fill();
+          context.strokeStyle = "rgba(41,41,41,.14)";
+          context.stroke();
+          context.fillStyle = "#292929";
+          context.font = "500 13px Segoe UI, system-ui, sans-serif";
+          context.textAlign = "center";
+          context.fillText(ended ? "Pipeline stopped" : "Press Space or tap to deploy",width/2,height/2+1);
+        }
+      }
+
+      function hitBrick(brick) {
+        const nearestX = Math.max(brick.x,Math.min(ball.x,brick.x+brick.width));
+        const nearestY = Math.max(brick.y,Math.min(ball.y,brick.y+brick.height));
+        const dx = ball.x-nearestX;
+        const dy = ball.y-nearestY;
+        return dx*dx+dy*dy < ball.radius*ball.radius;
+      }
+
+      function update(seconds) {
+        const paddleSpeed = 390;
+        if (pressed.left) paddle.x -= paddleSpeed*seconds;
+        if (pressed.right) paddle.x += paddleSpeed*seconds;
+        paddle.x = Math.max(0,Math.min(width-paddle.width,paddle.x));
+        ball.x += ball.dx*seconds;
+        ball.y += ball.dy*seconds;
+
+        if (ball.x < ball.radius) { ball.x = ball.radius; ball.dx = Math.abs(ball.dx); }
+        if (ball.x > width-ball.radius) { ball.x = width-ball.radius; ball.dx = -Math.abs(ball.dx); }
+        if (ball.y < ball.radius) { ball.y = ball.radius; ball.dy = Math.abs(ball.dy); }
+
+        if (ball.dy > 0 && ball.y+ball.radius >= paddle.y && ball.y-ball.radius <= paddle.y+paddle.height && ball.x >= paddle.x && ball.x <= paddle.x+paddle.width) {
+          const offset = (ball.x-(paddle.x+paddle.width/2))/(paddle.width/2);
+          const speed = Math.min(385,Math.hypot(ball.dx,ball.dy)+6);
+          ball.dx = speed*offset*.78;
+          ball.dy = -Math.sqrt(Math.max(120*120,speed*speed-ball.dx*ball.dx));
+          ball.y = paddle.y-ball.radius;
+        }
+
+        for (const brick of bricks) {
+          if (!brick.live || !hitBrick(brick)) continue;
+          brick.live = false;
+          ball.dy *= -1;
+          score += 1;
+          updateMetrics();
+          break;
+        }
+
+        if (score === rows*columns) {
+          ended = true;
+          running = false;
+          statusNode.textContent = "All checks green. Deploy suspiciously successful.";
+          draw();
+          return;
+        }
+
+        if (ball.y-ball.radius > height) {
+          lives -= 1;
+          updateMetrics();
+          if (!lives) {
+            ended = true;
+            running = false;
+            statusNode.textContent = "Retries exhausted. Rollback complete.";
+            draw();
+            return;
+          }
+          resetBall();
+          statusNode.textContent = `${lives} retries left. Press Space to continue.`;
+          draw();
+        }
+      }
+
+      function loop(now) {
+        if (!running) return;
+        const seconds = Math.min(.024,(now-lastTime)/1000);
+        lastTime = now;
+        update(seconds);
+        draw();
+        if (running) frame = window.requestAnimationFrame(loop);
+      }
+
+      function movePaddle(event) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (event.clientX-rect.left)/rect.width*width;
+        paddle.x = Math.max(0,Math.min(width-paddle.width,x-paddle.width/2));
+        if (!running) draw();
+      }
+
+      document.addEventListener("keydown",(event) => {
+        if (["ArrowLeft","ArrowRight"," "].includes(event.key)) event.preventDefault();
+        if (event.key === "ArrowLeft") pressed.left = true;
+        if (event.key === "ArrowRight") pressed.right = true;
+        if (event.key === " ") start();
+      });
+      document.addEventListener("keyup",(event) => {
+        if (event.key === "ArrowLeft") pressed.left = false;
+        if (event.key === "ArrowRight") pressed.right = false;
+      });
+      canvas.addEventListener("pointermove",movePaddle);
+      canvas.addEventListener("pointerdown",(event) => { movePaddle(event); start(); canvas.focus(); });
+      restartButton.addEventListener("click",reset);
+      document.addEventListener("visibilitychange",() => {
+        if (document.hidden && running) {
+          running = false;
+          window.cancelAnimationFrame(frame);
+          statusNode.textContent = "Pipeline paused. Press Space to continue.";
+          draw();
+        }
+      });
+      reset();
+    })();
+  </script>
+</body>
+</html>

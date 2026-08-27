@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Cache Overflow</title>
+  <style>
+    :root {
+      --ink: #292929;
+      --stage: #f6f6f6;
+      --card: #fff;
+      --border: color-mix(in srgb, var(--ink) 12%, transparent);
+      --muted: #6d6d6d;
+      --primary: #305dde;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .06);
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; margin: 0; }
+    body {
+      padding: clamp(16px, 4vw, 34px);
+      background: var(--stage);
+      color: var(--ink);
+      font-family: "Segoe UI", Inter, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      display: grid;
+      place-items: center;
+    }
+    button { font: inherit; color: inherit; }
+    button:focus-visible, .board:focus-visible { outline: 3px solid color-mix(in srgb, #3ba6f1 50%, transparent); outline-offset: 2px; }
+    .game { width: min(760px, 100%); display: grid; grid-template-columns: minmax(180px, 240px) minmax(280px, 400px); gap: clamp(24px, 6vw, 62px); align-items: center; }
+    .intro { align-self: stretch; padding: 6px 0; display: flex; flex-direction: column; justify-content: center; }
+    .eyebrow { color: var(--primary); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 7px 0 8px; font-size: clamp(30px, 5vw, 46px); font-weight: 500; letter-spacing: -.055em; line-height: .95; }
+    .intro > p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .metrics { margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .metric { min-height: 62px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); box-shadow: var(--shadow); display: grid; align-content: center; }
+    .metric small { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+    .metric strong { margin-top: 2px; font-size: 19px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .status { min-height: 38px; margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
+    .actions { margin-top: auto; padding-top: 18px; }
+    .actions button {
+      min-height: 34px; padding: 0 13px; border: 0; border-radius: 8px; background: #e9e9e9; font-size: 12px; font-weight: 500;
+      transition: background .16s ease, transform .1s ease;
+    }
+    .actions button:hover { background: color-mix(in srgb, #e9e9e9 94%, var(--ink)); }
+    .actions button:active { transform: translateY(1px) scale(.98); }
+    .board-shell { padding: 5px; border: 1px solid var(--border); border-radius: 24px; background: var(--card); box-shadow: var(--shadow); }
+    .board {
+      aspect-ratio: 1; padding: clamp(7px, 1.5vw, 11px); border: 1px solid var(--border); border-radius: 20px; background: color-mix(in srgb, var(--ink) 8%, var(--stage));
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(6px, 1.2vw, 9px); touch-action: none; outline: none;
+    }
+    .tile {
+      min-width: 0; border-radius: clamp(8px, 1.6vw, 13px); background: color-mix(in srgb, var(--ink) 7%, var(--card)); color: transparent;
+      display: grid; place-items: center; font-size: clamp(20px, 4.4vw, 38px); font-weight: 500; letter-spacing: -.05em; font-variant-numeric: tabular-nums;
+      animation: arrive .16s ease-out;
+    }
+    .tile[data-value="2"], .tile[data-value="4"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+    .tile[data-value="8"], .tile[data-value="16"] { background: color-mix(in srgb, var(--ink) 12%, var(--card)); color: var(--ink); }
+    .tile[data-value="32"], .tile[data-value="64"] { background: color-mix(in srgb, var(--ink) 24%, var(--card)); color: var(--card); }
+    .tile[data-value="128"], .tile[data-value="256"] { background: var(--ink); color: var(--card); }
+    .tile[data-value="512"], .tile[data-value="1024"], .tile[data-value="2048"] { background: var(--primary); color: white; }
+    .tile[data-value="1024"], .tile[data-value="2048"] { font-size: clamp(15px, 3.4vw, 29px); }
+    @keyframes arrive { from { opacity: .5; filter: blur(2px); } to { opacity: 1; filter: blur(0); } }
+    @media (max-width: 620px) {
+      body { display: block; padding: 14px; }
+      .game { max-width: 410px; margin: 0 auto; grid-template-columns: 1fr; gap: 14px; }
+      .intro { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 6px 14px; }
+      .intro > p { grid-column: 1 / -1; }
+      .metrics { grid-column: 1 / -1; margin-top: 8px; }
+      .status { grid-column: 1; min-height: 0; margin: 2px 0 0; }
+      .actions { grid-column: 2; grid-row: 3; padding-top: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .tile { animation: none; } }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <section class="intro">
+      <div>
+        <span class="eyebrow">Memory management</span>
+        <h1>Cache<br />Overflow</h1>
+      </div>
+      <p>Merge matching allocations. Reach 2048 before memory runs out.</p>
+      <div class="metrics">
+        <div class="metric"><small>Score</small><strong id="score">0</strong></div>
+        <div class="metric"><small>Largest</small><strong id="largest">2</strong></div>
+      </div>
+      <p class="status" id="status" role="status">Use arrow keys, WASD, or swipe.</p>
+      <div class="actions"><button id="restart" type="button">New allocation</button></div>
+    </section>
+
+    <div class="board-shell"><div class="board" id="board" tabindex="0" aria-label="Cache Overflow game board"></div></div>
+  </main>
+
+  <script>
+    (() => {
+      const size = 4;
+      const board = document.querySelector("#board");
+      const scoreNode = document.querySelector("#score");
+      const largestNode = document.querySelector("#largest");
+      const statusNode = document.querySelector("#status");
+      const restartButton = document.querySelector("#restart");
+      let cells = [];
+      let score = 0;
+      let celebrated = false;
+      let pointerStart = null;
+
+      function emptyCells() {
+        return cells.map((value, index) => value ? -1 : index).filter((index) => index >= 0);
+      }
+
+      function addAllocation() {
+        const empty = emptyCells();
+        if (!empty.length) return;
+        const index = empty[Math.floor(Math.random() * empty.length)];
+        cells[index] = Math.random() < .9 ? 2 : 4;
+      }
+
+      function collapse(values) {
+        const compact = values.filter(Boolean);
+        const merged = [];
+        for (let index = 0; index < compact.length; index += 1) {
+          if (compact[index] === compact[index + 1]) {
+            const value = compact[index] * 2;
+            merged.push(value);
+            score += value;
+            index += 1;
+          } else {
+            merged.push(compact[index]);
+          }
+        }
+        return merged.concat(Array(size - merged.length).fill(0));
+      }
+
+      function lineIndices(line, direction) {
+        if (direction === "left") return [0, 1, 2, 3].map((column) => line * size + column);
+        if (direction === "right") return [3, 2, 1, 0].map((column) => line * size + column);
+        if (direction === "up") return [0, 1, 2, 3].map((row) => row * size + line);
+        return [3, 2, 1, 0].map((row) => row * size + line);
+      }
+
+      function hasMove() {
+        if (emptyCells().length) return true;
+        for (let row = 0; row < size; row += 1) {
+          for (let column = 0; column < size; column += 1) {
+            const value = cells[row * size + column];
+            if (column < size - 1 && value === cells[row * size + column + 1]) return true;
+            if (row < size - 1 && value === cells[(row + 1) * size + column]) return true;
+          }
+        }
+        return false;
+      }
+
+      function render() {
+        board.replaceChildren();
+        cells.forEach((value) => {
+          const tile = document.createElement("div");
+          tile.className = "tile";
+          tile.dataset.value = value || "0";
+          tile.textContent = value || "";
+          tile.setAttribute("aria-label", value ? String(value) : "Empty");
+          board.append(tile);
+        });
+        const largest = Math.max(2, ...cells);
+        scoreNode.textContent = score.toLocaleString("en-US");
+        largestNode.textContent = largest.toLocaleString("en-US");
+        if (largest >= 2048 && !celebrated) {
+          celebrated = true;
+          statusNode.textContent = "2048 allocated. Somehow production survives.";
+        } else if (!hasMove()) {
+          statusNode.textContent = "Memory exhausted. Start a new allocation.";
+        }
+      }
+
+      function move(direction) {
+        if (!hasMove()) return;
+        const before = cells.join(",");
+        for (let line = 0; line < size; line += 1) {
+          const indices = lineIndices(line, direction);
+          const values = collapse(indices.map((index) => cells[index]));
+          indices.forEach((index, position) => { cells[index] = values[position]; });
+        }
+        if (cells.join(",") !== before) {
+          addAllocation();
+          render();
+        }
+      }
+
+      function newGame() {
+        cells = Array(size * size).fill(0);
+        score = 0;
+        celebrated = false;
+        addAllocation();
+        addAllocation();
+        statusNode.textContent = "Use arrow keys, WASD, or swipe.";
+        render();
+        board.focus();
+      }
+
+      const keyMoves = { ArrowLeft: "left", a: "left", A: "left", ArrowRight: "right", d: "right", D: "right", ArrowUp: "up", w: "up", W: "up", ArrowDown: "down", s: "down", S: "down" };
+      document.addEventListener("keydown", (event) => {
+        const direction = keyMoves[event.key];
+        if (!direction) return;
+        event.preventDefault();
+        move(direction);
+      });
+      board.addEventListener("pointerdown", (event) => {
+        pointerStart = { x: event.clientX, y: event.clientY };
+        board.setPointerCapture(event.pointerId);
+        board.focus();
+      });
+      board.addEventListener("pointerup", (event) => {
+        if (!pointerStart) return;
+        const x = event.clientX - pointerStart.x;
+        const y = event.clientY - pointerStart.y;
+        pointerStart = null;
+        if (Math.max(Math.abs(x), Math.abs(y)) < 24) return;
+        move(Math.abs(x) > Math.abs(y) ? (x > 0 ? "right" : "left") : (y > 0 ? "down" : "up"));
+      });
+      restartButton.addEventListener("click", newGame);
+      newGame();
+    })();
+  </script>
+</body>
+</html>

@@ -2,12 +2,10 @@
 
 import {
   ArrowRight,
-  BookOpenCheck,
   Check,
   ChevronDown,
   FileText,
   FolderKanban,
-  Search,
   ShieldCheck,
   Wrench,
 } from "lucide-react";
@@ -131,18 +129,15 @@ function SourceCards({ sources }: { sources: MarkGptSource[] }) {
 
 /** Tool chips plus retrieved context cards, adapted from Beautiful UI (MIT). */
 export function EvidenceRun({ sources }: { sources: MarkGptSource[] }) {
-  const [open, setOpen] = useState(true);
-  const tools = [
-    { icon: Search, label: "Search", chip: "project index" },
-    { icon: BookOpenCheck, label: "Read", chip: `${sources.length} relevant sources` },
-    { icon: Check, label: "Match", chip: "claims to evidence" },
-  ];
+  const [open, setOpen] = useState(false);
 
   return (
     <section className="markgpt-evidence-run">
       <button type="button" className="markgpt-evidence-toggle" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
-        <ChevronDown size={13} style={{ transform: open ? "rotate(0deg)" : "rotate(-90deg)" }} />
-        <span>{tools.length} steps, {sources.length} sources</span>
+        <FileText size={13} />
+        <span>Sources</span>
+        <small>{sources.length}</small>
+        <ChevronDown size={13} style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
       </button>
       <AnimatePresence initial={false}>
         {open ? (
@@ -152,12 +147,6 @@ export function EvidenceRun({ sources }: { sources: MarkGptSource[] }) {
             exit={{ height: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 550, damping: 40 }}
           >
-            <div className="markgpt-tool-rows">
-              {tools.map((tool) => {
-                const Icon = tool.icon;
-                return <span key={tool.label}><Icon size={13} /><b>{tool.label}</b><small>{tool.chip}</small></span>;
-              })}
-            </div>
             <SourceCards sources={sources} />
           </motion.div>
         ) : null}

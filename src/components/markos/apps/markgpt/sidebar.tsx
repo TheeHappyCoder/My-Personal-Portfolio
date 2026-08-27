@@ -2,7 +2,6 @@
 
 import {
   BriefcaseBusiness,
-  ChevronDown,
   MessageSquareText,
   PanelLeftClose,
   PanelLeftOpen,
@@ -15,19 +14,20 @@ import { useMemo, useRef, useState } from "react";
 import { GlideMenu } from "./glide-menu";
 
 export type MarkGptRecent = {
+  id: string;
   label: string;
-  prompt: string;
 };
 
 type MarkGptSidebarProps = {
-  activeTitle: string | null;
+  activeId: string | null;
   recents: MarkGptRecent[];
   onNewChat: () => void;
   onPrompt: (prompt: string, label: string) => void;
+  onSelectChat: (id: string) => void;
 };
 
 /** Sidebar structure and gliding hover behavior adapted from Beautiful UI (MIT). */
-export function MarkGptSidebar({ activeTitle, recents, onNewChat, onPrompt }: MarkGptSidebarProps) {
+export function MarkGptSidebar({ activeId, recents, onNewChat, onPrompt, onSelectChat }: MarkGptSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -47,8 +47,7 @@ export function MarkGptSidebar({ activeTitle, recents, onNewChat, onPrompt }: Ma
     <aside className={`markgpt-sidebar${collapsed ? " is-collapsed" : ""}`} aria-label="MarkGPT navigation">
       <div className="markgpt-sidebar-workspace">
         <span className="markgpt-sidebar-logo">M</span>
-        <span className="markgpt-sidebar-copy"><b>Mark</b><small>Portfolio index</small></span>
-        <ChevronDown className="markgpt-sidebar-copy" size={14} />
+        <span className="markgpt-sidebar-copy"><b>MarkGPT</b><small>Portfolio assistant</small></span>
         <button
           type="button"
           className="markgpt-sidebar-collapse"
@@ -105,15 +104,23 @@ export function MarkGptSidebar({ activeTitle, recents, onNewChat, onPrompt }: Ma
             <button
               data-markgpt-row
               type="button"
-              key={item.label}
-              className={activeTitle === item.label ? "is-active" : ""}
+              key={item.id}
+              className={activeId === item.id ? "is-active" : ""}
               title={item.label}
-              onClick={() => onPrompt(item.prompt, item.label)}
+              onClick={() => onSelectChat(item.id)}
             >
+              {activeId === item.id ? <i className="markgpt-chat-active" aria-hidden="true" /> : null}
               <MessageSquareText size={15} />
               <span className="markgpt-sidebar-copy">{item.label}</span>
             </button>
           ))}
+          {!query && recents.length === 0 ? (
+            <div className="markgpt-sidebar-empty-state markgpt-sidebar-copy">
+              <MessageSquareText size={15} />
+              <b>No chats yet</b>
+              <span>Choose a question to begin.</span>
+            </div>
+          ) : null}
           {query && visibleRecents.length === 0 ? <p className="markgpt-sidebar-empty markgpt-sidebar-copy">No chats found</p> : null}
         </GlideMenu>
       </section>

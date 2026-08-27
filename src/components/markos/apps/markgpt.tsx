@@ -15,13 +15,17 @@ import type { PortfolioAppProps } from "./types";
 import { PromptComposer } from "./markgpt/prompt-composer";
 import {
   EvidenceRun,
-  NovaRecommendationCard,
-  PortfolioIndexRows,
   StreamingAnswer,
 } from "./markgpt/response-details";
 import { MarkGptSidebar, type MarkGptRecent } from "./markgpt/sidebar";
 import { ThinkingTrace } from "./markgpt/thinking-trace";
 import type { ChatMessage, PromptIdea } from "./markgpt/types";
+
+type MarkGptChat = MarkGptRecent & {
+  messages: ChatMessage[];
+};
+
+const emptyMessages: ChatMessage[] = [];
 
 const promptIdeas: PromptIdea[] = [
   { label: "The short version", question: "What does Mark actually build?", icon: "work" },
@@ -30,14 +34,6 @@ const promptIdeas: PromptIdea[] = [
   { label: "Useful edge", question: "What makes Mark different?", icon: "story" },
   { label: "Origin story", question: "Why building automation?", icon: "work" },
   { label: "Say hello", question: "How do I contact Mark?", icon: "contact" },
-];
-
-const recentChats: MarkGptRecent[] = [
-  { label: "Recruiter quick scan", prompt: "What does Mark actually build?" },
-  { label: "Best case study", prompt: "Show me Mark's best project" },
-  { label: "Team fit", prompt: "What is Mark like to work with?" },
-  { label: "Technical range", prompt: "What makes Mark different?" },
-  { label: "Debugging notes", prompt: "What is Mark's debugging ritual?" },
 ];
 
 function answerPrompt(prompt: string): Omit<ChatMessage, "role"> {
@@ -179,20 +175,25 @@ function PromptSearch({ onPrompt }: { onPrompt: (prompt: string, label?: string)
           ))}
         </div>
       ) : (
-        <div className="markgpt-prompt-empty"><Search size={16} /><b>No question found.</b><span>Ask it directly below.</span></div>
+        <div className="markgpt-prompt-empty"><Search size={16} /><b>No question found.</b><span>Clear search to see every option.</span></div>
       )}
     </section>
   );
 }
 
 export function MarkGptApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [value, setValue] = useState("");
-  const [typing, setTyping] = useState(false);
-  const [activeTitle, setActiveTitle] = useState<string | null>(null);
+  const [chats, setChats] = useState<MarkGptChat[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [pendingChatId, setPendingChatId] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const latestAnswerRef = useRef<HTMLElement>(null);
   const responseTimerRef = useRef<number | null>(null);
+  const nextChatIdRef = useRef(1);
+
+  const activeChat = chats.find((chat) => chat.id === activeChatId) ?? null;
+  const messages = activeChat?.messages ?? emptyMessages;
+  const activeTitle = activeChat?.label ?? null;
+  const typing = pendingChatId !== null;
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -211,14 +212,27 @@ export function MarkGptApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
     const clean = prompt.trim();
     if (!clean || typing) return;
 
-    setMessages((current) => [...current, { role: "user", text: clean }]);
-    setValue("");
-    setTyping(true);
-    setActiveTitle(label ?? (clean.length > 31 ? `${clean.slice(0, 31)}…` : clean));
-    const responseDelay = 3000;
+    const chatId = activeChatId ?? `markgpt-chat-${nextChatIdRef.current++}`;
+    const title = label ?? (clean.length > 31 ? `${clean.slice(0, 31)}…` : clean);
+    const userMessage: ChatMessage = { role: "user", text: clean };
+
+    if (activeChatId) {
+      setChats((current) => current.map((chat) => chat.id === chatId
+        ? { ...chat, messages: [...chat.messages, userMessage] }
+        : chat));
+    } else {
+      setChats((current) => [{ id: chatId, label: title, messages: [userMessage] }, ...current]);
+      setActiveChatId(chatId);
+    }
+
+    setPendingChatId(chatId);
+    const responseDelay = 1500;
     responseTimerRef.current = window.setTimeout(() => {
-      setMessages((current) => [...current, { role: "assistant", ...answerPrompt(clean) }]);
-      setTyping(false);
+      const assistantMessage: ChatMessage = { role: "assistant", ...answerPrompt(clean) };
+      setChats((current) => current.map((chat) => chat.id === chatId
+        ? { ...chat, messages: [...chat.messages, assistantMessage] }
+        : chat));
+      setPendingChatId(null);
       responseTimerRef.current = null;
     }, responseDelay);
   };
@@ -226,10 +240,8 @@ export function MarkGptApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
   const newChat = () => {
     if (responseTimerRef.current !== null) window.clearTimeout(responseTimerRef.current);
     responseTimerRef.current = null;
-    setMessages([]);
-    setValue("");
-    setTyping(false);
-    setActiveTitle(null);
+    setPendingChatId(null);
+    setActiveChatId(null);
   };
 
   const runAction = (message: ChatMessage) => {
@@ -239,7 +251,13 @@ export function MarkGptApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
 
   return (
     <div className="markgpt-app">
-      <MarkGptSidebar activeTitle={activeTitle} recents={recentChats} onNewChat={newChat} onPrompt={send} />
+      <MarkGptSidebar
+        activeId={activeChatId}
+        recents={chats}
+        onNewChat={newChat}
+        onPrompt={send}
+        onSelectChat={setActiveChatId}
+      />
 
       <main className="markgpt-main">
         <header className="markgpt-header">
@@ -250,14 +268,12 @@ export function MarkGptApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
         <div className="markgpt-conversation" aria-live="polite">
           {messages.length === 0 ? (
             <motion.div className="markgpt-home" initial={{ opacity: 0, filter: "blur(4px)" }} animate={{ opacity: 1, filter: "blur(0px)" }} transition={{ duration: 0.18, ease: "easeOut" }}>
-              <div className="markgpt-home-copy">
-                <span>Portfolio assistant</span>
-                <h2>Ask about the work.</h2>
-                <p>Fast answers for recruiters, collaborators, and anyone deciding which case study deserves the first click.</p>
+              <div className="markgpt-chat-start">
+                <span className="markgpt-header-logo">M</span>
+                <h2>What would you like to know?</h2>
+                <p>Choose a question to start a chat.</p>
               </div>
-              <NovaRecommendationCard onOpenProject={() => onOpenProject("novacore")} onBrowseWork={() => onOpenApp("explorer")} />
               <PromptSearch onPrompt={send} />
-              <PortfolioIndexRows />
             </motion.div>
           ) : (
             <div className="markgpt-thread">
@@ -282,10 +298,15 @@ export function MarkGptApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
                 >
                   <span className="markgpt-answer-avatar">M</span>
                   <div>
-                    <header><b>MarkGPT</b><small>Grounded in portfolio content</small></header>
-                    <StreamingAnswer text={message.text} />
+                    <header><b>MarkGPT</b><small>Portfolio answer</small></header>
+                    <section className="markgpt-answer-shell">
+                      <header><span>Answer</span><small>Grounded in portfolio content</small></header>
+                      <div className="markgpt-answer-body">
+                        <StreamingAnswer text={message.text} />
+                        {message.action ? <button type="button" className="markgpt-answer-action" onClick={() => runAction(message)}>{message.action.label}</button> : null}
+                      </div>
+                    </section>
                     {message.sources?.length ? <EvidenceRun sources={message.sources} /> : null}
-                    {message.action ? <button type="button" className="markgpt-answer-action" onClick={() => runAction(message)}>{message.action.label}</button> : null}
                     {message.followUps?.length ? (
                       <div className="markgpt-followups">
                         <span>Follow-ups</span>
@@ -297,7 +318,7 @@ export function MarkGptApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
               ))}
 
               <AnimatePresence>
-                {typing ? (
+                {pendingChatId === activeChatId ? (
                   <motion.div className="markgpt-assistant-message" initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, transition: { duration: 0.1 } }}>
                     <span className="markgpt-answer-avatar">M</span>
                     <ThinkingTrace />
@@ -309,7 +330,7 @@ export function MarkGptApp({ onOpenApp, onOpenProject }: PortfolioAppProps) {
           )}
         </div>
 
-        <PromptComposer value={value} disabled={typing} onChange={setValue} onSend={send} />
+        {messages.length > 0 ? <PromptComposer options={promptIdeas} disabled={typing} onSelect={send} /> : null}
       </main>
     </div>
   );

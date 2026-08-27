@@ -14,7 +14,7 @@ const steps = [
 export function ThinkingTrace() {
   const reduceMotion = useReducedMotion();
   const [stage, setStage] = useState(reduceMotion ? steps.length : 0);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {

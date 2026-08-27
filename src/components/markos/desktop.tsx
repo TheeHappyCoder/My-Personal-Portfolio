@@ -4,6 +4,7 @@ import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   ChevronRight,
   CirclePower,
+  Gamepad2,
   Info,
   Laptop,
   Moon,
@@ -58,6 +59,7 @@ const APP_META: Record<AppId, AppMeta> = {
   settings: { title: "Settings", size: { width: 980, height: 660 }, position: { x: 154, y: 38 } },
   skills: { title: "Skills - Settings", size: { width: 940, height: 640 }, position: { x: 170, y: 45 } },
   photos: { title: "Photos", size: { width: 930, height: 640 }, position: { x: 145, y: 48 } },
+  arcade: { title: "MarkOS Arcade", size: { width: 930, height: 650 }, position: { x: 160, y: 42 } },
   notepad: { title: "reminders.txt - Notepad", size: { width: 820, height: 590 }, position: { x: 230, y: 72 } },
   browser: { title: "Google Chrome", size: { width: 1080, height: 680 }, position: { x: 84, y: 24 } },
   chat: { title: "MarkGPT", size: { width: 900, height: 620 }, position: { x: 190, y: 55 } },
@@ -78,19 +80,20 @@ const initialWindow: WindowModel = {
   maximized: false,
 };
 
-const desktopShortcuts: Array<{ label: string; app: AppId; payload?: string; icon: WindowsIconName; shortcut?: boolean }> = [
+const desktopShortcuts: Array<{ label: string; app: AppId; payload?: string; icon: WindowsIconName | "arcade"; shortcut?: boolean }> = [
   { label: "My work", app: "explorer", icon: "projects" },
   { label: "About Mark", app: "about", icon: "user" },
   { label: "Settings", app: "settings", icon: "settings" },
   { label: "Skills", app: "skills", icon: "tools" },
   { label: "Photos", app: "photos", icon: "pictures" },
+  { label: "Arcade", app: "arcade", icon: "arcade" },
   { label: "Resume.pdf", app: "resume", icon: "file" },
   { label: "Google Chrome", app: "browser", icon: "chrome", shortcut: true },
   { label: "Notepad", app: "notepad", icon: "notepad", shortcut: true },
   { label: "Contact.url", app: "contact", icon: "network", shortcut: true },
 ];
 
-const pinnedApps: AppId[] = ["explorer", "browser", "chat", "notepad", "terminal"];
+const pinnedApps: AppId[] = ["explorer", "browser", "chat", "arcade", "notepad", "terminal"];
 
 function WindowsLogo({ size = 18 }: { size?: number }) {
   return <WindowsAsset name="windowsStart" size={size} />;
@@ -111,6 +114,7 @@ function AppGlyph({ app, size = 18 }: { app: AppId; size?: number }) {
     project: "projects",
   };
   if (app === "chat") return <span className="markgpt-glyph" style={{ width: size, height: size, fontSize: Math.max(10, size * 0.55) }}>M</span>;
+  if (app === "arcade") return <span className="arcade-glyph" style={{ width: size, height: size }}><Gamepad2 size={Math.max(12, size * 0.68)} /></span>;
   if (app === "terminal") return <span className="terminal-glyph" style={{ width: size, height: size, fontSize: Math.max(8, size * 0.42) }}>&gt;_</span>;
   return <span className={`app-glyph glyph-${app}`}><WindowsAsset name={icons[app] ?? "file"} size={size} /></span>;
 }
@@ -303,7 +307,7 @@ export function PortfolioDesktop() {
               onDoubleClick={() => activateShortcut(shortcut.label, shortcut.app, shortcut.payload)}
               onKeyDown={(event) => handleShortcutKey(event, shortcut.label, shortcut.app, shortcut.payload)}
             >
-              <span className="desktop-icon"><WindowsAsset name={shortcut.icon} size={48} shortcut={shortcut.shortcut} priority /></span>
+              <span className="desktop-icon">{shortcut.icon === "arcade" ? <AppGlyph app="arcade" size={48} /> : <WindowsAsset name={shortcut.icon} size={48} shortcut={shortcut.shortcut} priority />}</span>
               <span>{shortcut.label}</span>
             </button>
           ))}
@@ -381,7 +385,7 @@ export function PortfolioDesktop() {
               <>
                 <div className="start-section-heading"><b>Pinned</b><button type="button" onClick={() => openApp("explorer")}>All apps <ChevronRight size={13} /></button></div>
                 <div className="pinned-grid">
-                  {(["explorer", "browser", "about", "settings", "skills", "photos", "chat", "notepad", "terminal", "resume", "contact"] as AppId[]).map((app) => (
+                  {(["explorer", "browser", "about", "settings", "skills", "photos", "arcade", "chat", "notepad", "terminal", "resume", "contact"] as AppId[]).map((app) => (
                     <button type="button" key={app} onClick={() => openApp(app)}><AppGlyph app={app} size={25} /><span>{APP_META[app].title.replace(" - Settings", "").replace("Mark-Steyn-CV.pdf", "Resume")}</span></button>
                   ))}
                 </div>

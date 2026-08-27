@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Minus, Square, X } from "lucide-react";
 import { PointerEvent as ReactPointerEvent, ReactNode, useEffect, useRef } from "react";
+import { flushSync } from "react-dom";
 
 export type WindowPosition = { x: number; y: number };
 export type WindowSize = { width: number; height: number };
@@ -40,31 +41,52 @@ export function WindowFrame({
   onClose,
   children,
 }: WindowFrameProps) {
+  const frameRef = useRef<HTMLElement>(null);
+  const onMoveRef = useRef(onMove);
+
   const drag = useRef<{
     pointerId: number;
     startX: number;
     startY: number;
     originX: number;
     originY: number;
+    lastX: number;
+    lastY: number;
   } | null>(null);
 
   useEffect(() => {
-    const handleMove = (event: PointerEvent) => {
-      if (!drag.current || drag.current.pointerId !== event.pointerId) return;
+    onMoveRef.current = onMove;
+  }, [onMove]);
 
-      const nextX = drag.current.originX + event.clientX - drag.current.startX;
-      const nextY = drag.current.originY + event.clientY - drag.current.startY;
+  useEffect(() => {
+    const handleMove = (event: PointerEvent) => {
+      const currentDrag = drag.current;
+      if (!currentDrag || currentDrag.pointerId !== event.pointerId) return;
+
+      const nextX = currentDrag.originX + event.clientX - currentDrag.startX;
+      const nextY = currentDrag.originY + event.clientY - currentDrag.startY;
       const maxX = Math.max(8, window.innerWidth - 220);
       const maxY = Math.max(8, window.innerHeight - 112);
+      const clampedX = Math.min(Math.max(nextX, 8 - size.width + 190), maxX);
+      const clampedY = Math.min(Math.max(nextY, 8), maxY);
 
-      onMove({
-        x: Math.min(Math.max(nextX, 8 - size.width + 190), maxX),
-        y: Math.min(Math.max(nextY, 8), maxY),
-      });
+      currentDrag.lastX = clampedX;
+      currentDrag.lastY = clampedY;
+
+      frameRef.current?.style.setProperty(
+        "translate",
+        `${clampedX - currentDrag.originX}px ${clampedY - currentDrag.originY}px`,
+      );
     };
 
     const handleUp = (event: PointerEvent) => {
-      if (drag.current?.pointerId === event.pointerId) drag.current = null;
+      const currentDrag = drag.current;
+      if (!currentDrag || currentDrag.pointerId !== event.pointerId) return;
+
+      drag.current = null;
+      flushSync(() => onMoveRef.current({ x: currentDrag.lastX, y: currentDrag.lastY }));
+      frameRef.current?.style.removeProperty("translate");
+      frameRef.current?.classList.remove("is-dragging");
     };
 
     window.addEventListener("pointermove", handleMove);
@@ -75,10 +97,10 @@ export function WindowFrame({
       window.removeEventListener("pointerup", handleUp);
       window.removeEventListener("pointercancel", handleUp);
     };
-  }, [onMove, size.width]);
+  }, [size.width]);
 
   const startDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (maximized || event.button !== 0) return;
+    if (maximized || event.button !== 0 || window.innerWidth <= 680) return;
     if ((event.target as HTMLElement).closest("button")) return;
 
     onFocus();
@@ -88,7 +110,10 @@ export function WindowFrame({
       startY: event.clientY,
       originX: position.x,
       originY: position.y,
+      lastX: position.x,
+      lastY: position.y,
     };
+    frameRef.current?.classList.add("is-dragging");
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
@@ -104,6 +129,7 @@ export function WindowFrame({
 
   return (
     <motion.section
+      ref={frameRef}
       data-window-id={windowId}
       className={`app-window ${active ? "is-active" : ""} ${maximized ? "is-maximized" : ""}`}
       style={frameStyle}

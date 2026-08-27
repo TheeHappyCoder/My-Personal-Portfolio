@@ -326,12 +326,28 @@ export const projects: PortfolioProject[] = [
       "Oversized typography, monochrome art direction, restrained motion, and structured expertise pages create a confident site that feels established and current. Clear contact and appointment paths keep the visual concept commercially useful.",
     tech: ["HTML", "CSS", "JavaScript", "Bootstrap", "GSAP", "Swiper", "Responsive design"],
     cover: "/websites/botha-home.png",
+    coverVideo: "/websites/bothapartners/videos/landing.mp4",
     gallery: ["/websites/botha-home.png", "/websites/botha-expertise.png", "/websites/botha-about.png"],
     galleryLabels: [
       "Monochrome editorial home page",
       "Visual expertise directory",
       "Legacy-led firm story",
     ],
+    tour: {
+      eyebrow: "Website walkthrough",
+      title: "Editorial confidence, shown in motion.",
+      intro:
+        "A focused walkthrough follows the landing experience from its opening statement into the editorial system, legal expertise, and direct client journey.",
+      steps: [
+        {
+          title: "Enter the Botha Partners experience",
+          description:
+            "See how oversized typography, monochrome art direction, and restrained motion turn a long-established legal practice into a contemporary digital presence.",
+          src: "/websites/bothapartners/videos/landing.mp4",
+          duration: "0:33",
+        },
+      ],
+    },
     liveUrl: "https://bothapartnerswebsite.vercel.app/",
     scope: [
       {

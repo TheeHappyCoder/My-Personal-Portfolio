@@ -1,6 +1,7 @@
 "use client";
 
 import { AboutApp } from "./about";
+import { ArcadeApp } from "./arcade";
 import { ChromeApp } from "./chrome";
 import { ContactApp } from "./contact";
 import { ExplorerApp } from "./explorer";
@@ -42,6 +43,8 @@ export function AppContent({ app, payload, onOpenApp, onOpenProject, appearance,
       return <SkillsApp />;
     case "photos":
       return <PhotosApp />;
+    case "arcade":
+      return <ArcadeApp />;
     case "notepad":
       return <NotepadApp />;
     case "browser":
